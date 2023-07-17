@@ -67,29 +67,15 @@ jobs:
       - name: Replace files with formatted versions
         run: |
           for file in ${{ matrix.files }}; do
-            skip_value="${{ env['skip_' + file] }}"
+            skip_value=$"{{ env['skip_' + file] }}"
             if [[ "$skip_value" == "false" ]]; then
-              if [[ "$file" == */* ]]; then
-                dir=$(dirname "$file")
-                filename=$(basename "$file")
-                temp_file="$dir/temp-$filename"
-              else
-                temp_file="temp-$file"
-              fi
-              mv "$temp_file" "$file"
+              mv "temp-$file" "$file"
             fi
           done
       - name: Remove temporary files
         run: |
           for file in ${{ matrix.files }}; do
-            if [[ "$file" == */* ]]; then
-              dir=$(dirname "$file")
-              filename=$(basename "$file")
-              temp_file="$dir/temp-$filename"
-            else
-              temp_file="temp-$file"
-            fi
-            rm -f "$temp_file"
+            rm -f "temp-$file"
           done
       - name: Commit and push changes
         run: |
