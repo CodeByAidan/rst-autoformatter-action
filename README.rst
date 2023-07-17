@@ -11,26 +11,26 @@ request.
 *******
 
 To use this action, you need to create a workflow (``.yml`` or ``.yaml``
-file) in the ``.github/workflows`` directory of your repository. 
-Please make sure to modify the list of files under the ``matrix`` section
-of your workflow to match your specific requirements. You can include wildcards
-(``*``) to process multiple files in a directory such as ``tests/*.rst``, or you
-can simply use a specific file path like ``README.rst``. Here's what your
-workflow should look like:
+file) in the ``.github/workflows`` directory of your repository. Please
+make sure to modify the list of files under the ``matrix`` section of
+your workflow to match your specific requirements. You can include
+wildcards (``*``) to process multiple files in a directory such as
+``tests/*.rst``, or you can simply use a specific file path like
+``README.rst``. Here's what your workflow should look like:
 
 .. code:: yaml
 
    name: Format RST files
-   
+
    on:
      push:
        branches:
          - main
-   
+
    jobs:
      format:
        runs-on: ubuntu-latest
-   
+
        strategy:
          matrix:
            files:
@@ -39,12 +39,12 @@ workflow should look like:
        steps:
          - name: Check out code
            uses: actions/checkout@v3
-   
+
          - name: Set up Python
            uses: actions/setup-python@v4
            with:
              python-version: '3.10'
-   
+
          - name: Install dependencies
            run: |
              python -m pip install --upgrade pip
@@ -117,8 +117,6 @@ workflow should look like:
              else
                echo "No changes to commit. Skipping commit and push."
              fi
-
-
 
 **************
  Dependencies
