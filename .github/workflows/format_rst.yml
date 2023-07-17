@@ -58,6 +58,7 @@ jobs:
       - name: Remove temporary file
         if: steps.compare_files.outputs.skip_steps != 'true'
         run: |
+          ls
           rm temp-README.rst
 
       - name: Commit and push changes
