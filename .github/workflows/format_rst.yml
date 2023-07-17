@@ -60,6 +60,11 @@ jobs:
         run: |
           rm -f temp-README.rst
 
+      - name: Pull latest changes
+        if: steps.compare_files.outputs.skip_steps != 'true'
+        run: |
+          git pull origin main
+
       - name: Commit and push changes
         if: steps.compare_files.outputs.skip_steps != 'true'
         run: |
