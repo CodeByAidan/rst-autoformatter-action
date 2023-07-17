@@ -21,4 +21,4 @@ jobs:
         
     - name: Format RST files
       run: |
-        rstfmt -i README.rst
+        rstfmt README.rst
