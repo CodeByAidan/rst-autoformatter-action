@@ -54,7 +54,18 @@ jobs:
       
       - name: Update existing PR
         if: steps.check_pr.outputs.pr_exists == 'true'
-        run: |
-          gh pr comment ${GITHUB_REPOSITORY} --body "Updated by Job ${{ github.job }}"
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { repo, owner } = context.repo;
+            const prNumber = ${steps.check_pr.outputs.pr_number};
+            if (prNumber) {
+              await github.rest.issues.createComment({
+                owner: owner,
+                repo: repo,
+                issue_number: prNumber,
+                body: "Updated by Job format"
+              });
+            }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
