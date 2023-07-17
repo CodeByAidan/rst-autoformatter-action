@@ -22,16 +22,16 @@ wildcards (``*``) to process multiple files in a directory such as
 .. code:: yaml
 
    name: Format RST files
-   
+
    on:
      push:
        branches:
          - main
-   
+
    jobs:
      format:
        runs-on: ubuntu-latest
-   
+
        strategy:
          matrix:
            files:
@@ -40,23 +40,23 @@ wildcards (``*``) to process multiple files in a directory such as
        steps:
          - name: Check out code
            uses: actions/checkout@v3
-   
+
          - name: Set up Python
            uses: actions/setup-python@v4
            with:
              python-version: '3.10'
-   
+
          - name: Install dependencies
            run: |
              python -m pip install --upgrade pip
              pip install -r requirements.txt
-             
+
          - name: Format RST files
            run: |
              for file in ${{ matrix.files }}; do
                rstfmt "$file"
              done
-             
+
          - name: Create temporary files
            run: |
              for file in ${{ matrix.files }}; do
@@ -69,7 +69,7 @@ wildcards (``*``) to process multiple files in a directory such as
                fi
                cp "$file" "$temp_file"
              done
-             
+
          - name: Compare files
            id: compare_files
            run: |
@@ -80,7 +80,7 @@ wildcards (``*``) to process multiple files in a directory such as
                  echo "skip_$file=false" >> $GITHUB_ENV
                fi
              done
-             
+
          - name: Skip if files are identical
            run: |
              for file in ${{ matrix.files }}; do
@@ -91,7 +91,7 @@ wildcards (``*``) to process multiple files in a directory such as
                  echo "Continuing with further steps for $file."
                fi
              done
-             
+
          - name: Replace files with formatted versions
            run: |
              for file in ${{ matrix.files }}; do
@@ -100,7 +100,7 @@ wildcards (``*``) to process multiple files in a directory such as
                  mv "temp-$file" "$file"
                fi
              done
-             
+
          - name: Remove temporary files
            run: |
              for file in ${{ matrix.files }}; do
@@ -113,7 +113,7 @@ wildcards (``*``) to process multiple files in a directory such as
                fi
                rm -f "$temp_file"
              done
-             
+
          - name: Commit and push changes
            run: |
              git config user.name "GitHub Actions"
