@@ -12,13 +12,12 @@ jobs:
     strategy:
       matrix:
         files:
-          - "README.rst"
+          - README.rst
+          - "tests/*.rst"
 
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -56,7 +55,7 @@ jobs:
       - name: Skip if files are identical
         run: |
           for file in ${{ matrix.files }}; do
-            skip_value="${{ needs.compare_files.outputs['skip_' + file] }}"
+            skip_value="${{ needs.compare_files.outputs['skip_'] }}${file}"
             if [[ "$skip_value" == "true" ]]; then
               echo "Skipping further steps for $file."
             fi
@@ -65,7 +64,7 @@ jobs:
       - name: Replace files with formatted versions
         run: |
           for file in ${{ matrix.files }}; do
-            skip_value="${{ needs.compare_files.outputs['skip_' + file] }}"
+            skip_value="${{ needs.compare_files.outputs['skip_'] }}${file}"
             if [[ "$skip_value" == "false" ]]; then
               mv "temp-$file" "$file"
             fi
