@@ -42,9 +42,10 @@ jobs:
 
       - name: Create temporary files
         run: |
-          for file in ${{ matrix.files }}; do
-            cp "$file" "temp-$file"
+          for file in tests/*.rst; do
+            cp "$file" "temp-${{ file }}"
           done
+
 
       - name: Compare files
         id: compare_files
