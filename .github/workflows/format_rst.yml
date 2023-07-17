@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         files:
-          - "README.rst"
+          - README.rst
           - "tests/*.rst"
 
     steps:
@@ -46,18 +46,17 @@ jobs:
         run: |
           for file in ${{ matrix.files }}; do
             if cmp -s "$file" "temp-$file"; then
-              echo "File $file is identical. Skipping further steps."
-              echo "skip_$file=true" >> $GITHUB_ENV
-            else
-              echo "File $file is different."
-              echo "skip_$file=false" >> $GITHUB_ENV
-            fi
-          done
+            echo "::set-output name=skip_$file::true"
+          else
+            echo "::set-output name=skip_$file::false"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Skip if files are identical
         run: |
           for file in ${{ matrix.files }}; do
-            if [[ "${{ env["skip_$file"] }}" == "true" ]]; then
+            if [[ "${{ needs.compare_files.outputs['skip_' + file] }}" == "true" ]]; then
               echo "Skipping further steps for $file."
             fi
           done
@@ -65,7 +64,7 @@ jobs:
       - name: Replace files with formatted versions
         run: |
           for file in ${{ matrix.files }}; do
-            if [[ "${{ env["skip_$file"] }}" == "false" ]]; then
+            if [[ "${{ needs.compare_files.outputs['skip_' + file] }}" == "false" ]]; then
               mv "temp-$file" "$file"
             fi
           done
