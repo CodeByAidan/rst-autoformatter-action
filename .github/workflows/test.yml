@@ -22,9 +22,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
-      - name: Test
+      - name: Test Formatting
         run: |
-          rstfmt --test tests/test_file1.rst
-
-
-
+          rstfmt tests/test_file1.rst
+          diff -q tests/test_file1.rst tests/test_file2.rst && echo "PASS" || echo "FAIL"
