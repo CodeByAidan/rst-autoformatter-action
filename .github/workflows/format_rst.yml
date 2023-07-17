@@ -7,6 +7,7 @@ on:
 
 permissions:
   pull-requests: write
+  contents: write
 
 jobs:
   format:
@@ -53,6 +54,11 @@ jobs:
         if: steps.compare_files.outputs.skip_steps != 'true'
         run: |
           mv temp-README.rst README.rst
+
+      - name: Remove temporary file
+        if: steps.compare_files.outputs.skip_steps != 'true'
+        run: |
+          rm temp-README.rst
 
       - name: Commit and push changes
         if: steps.compare_files.outputs.skip_steps != 'true'
@@ -106,8 +112,3 @@ jobs:
             }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Remove temporary file
-        if: steps.compare_files.outputs.skip_steps != 'true'
-        run: |
-          rm temp-README.rst
