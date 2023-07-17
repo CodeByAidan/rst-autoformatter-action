@@ -35,29 +35,29 @@ jobs:
         run: |
           if cmp -s README.rst temp-README.rst; then
             echo "Files are identical. Skipping further steps."
-            echo "::set-output name=skip_steps::true"
+            echo "skip_steps=true" >> $GITHUB_ENV
           else
             echo "Files are different."
-            echo "::set-output name=skip_steps::false"
+            echo "skip_steps=false" >> $GITHUB_ENV
           fi
 
       - name: Skip if files are identical
-        if: steps.compare_files.outputs.skip_steps == 'true'
+        if: env.skip_steps == 'true'
         run: |
           echo "Skipping further steps."
 
       - name: Replace README with formatted file
-        if: steps.compare_files.outputs.skip_steps != 'true'
+        if: env.skip_steps != 'true'
         run: |
           mv temp-README.rst README.rst
 
       - name: Remove temporary file
-        if: steps.compare_files.outputs.skip_steps != 'true'
+        if: env.skip_steps != 'true'
         run: |
           rm -f temp-README.rst
 
       - name: Commit and push changes
-        if: steps.compare_files.outputs.skip_steps != 'true'
+        if: env.skip_steps != 'true'
         run: |
           git config user.name "GitHub Actions"
           git config user.email "<>"
