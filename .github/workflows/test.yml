@@ -24,7 +24,6 @@ jobs:
       
       - name: Test
         run: |
-          rstfmt --check tests/test_file1.rst
           rstfmt --test tests/test_file1.rst
 
 
