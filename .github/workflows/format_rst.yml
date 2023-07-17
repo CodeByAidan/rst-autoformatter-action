@@ -28,6 +28,8 @@ jobs:
       - name: Format RST files
         run: |
           rstfmt README.rst
+          echo "Formatted README.rst:"
+          cat README.rst
       
       - name: Check for existing PR
         id: check_pr
