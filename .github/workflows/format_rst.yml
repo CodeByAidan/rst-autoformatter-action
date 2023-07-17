@@ -5,10 +5,6 @@ on:
     branches:
       - main
 
-permissions:
-  pull-requests: write
-  contents: write
-
 jobs:
   format:
     runs-on: ubuntu-latest
@@ -60,11 +56,6 @@ jobs:
         run: |
           rm -f temp-README.rst
 
-      - name: Pull latest changes
-        if: steps.compare_files.outputs.skip_steps != 'true'
-        run: |
-          git pull origin main
-
       - name: Commit and push changes
         if: steps.compare_files.outputs.skip_steps != 'true'
         run: |
@@ -73,47 +64,3 @@ jobs:
           git add README.rst
           git commit -m "Apply rstfmt formatting"
           git push
-
-      - name: Check for existing PR
-        id: check_pr
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { repo, owner } = context.repo;
-            const pulls = await github.rest.pulls.list({
-              owner: owner,
-              repo: repo,
-              head: `${owner}:${context.ref}`,
-              base: 'main',
-              state: 'open',
-            });
-            const existingPR = pulls.data.find(pr => pr.user.login === 'github-actions[bot]' && pr.title === 'Format RST files');
-            core.setOutput('pr_number', existingPR ? existingPR.number : '');
-            core.setOutput('pr_exists', existingPR ? 'true' : 'false');
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create or update PR
-        if: steps.check_pr.outputs.pr_exists == 'false' && steps.compare_files.outputs.skip_steps != 'true'
-        run: |
-          gh pr create --title "Format RST files" --body "Automated PR for formatting RST files" --base main --head "$(git branch --show-current)"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update existing PR
-        if: steps.check_pr.outputs.pr_exists == 'true' && steps.compare_files.outputs.skip_steps != 'true'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { repo, owner } = context.repo;
-            const prNumber = '${{ steps.check_pr.outputs.pr_number }}';
-            if (prNumber) {
-              await github.rest.issues.createComment({
-                owner: owner,
-                repo: repo,
-                issue_number: prNumber,
-                body: "Updated by Job format"
-              });
-            }
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
