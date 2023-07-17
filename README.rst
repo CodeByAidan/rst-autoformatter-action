@@ -11,6 +11,12 @@ Python.
  Usage
 *******
 
+**Check if "Read and write permissions" are enabled in Settings -> Actions -> General -> Workflow permissions:**
+
+.. image:: media/chrome_pAkjeMG4hV.png
+
+
+
 To use this action, you need to create a workflow (``.yml`` or ``.yaml``
 file) in the ``.github/workflows`` directory of your repository. Please
 make sure to modify the list of files under the ``matrix`` section of
