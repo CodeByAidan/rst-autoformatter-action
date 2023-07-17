@@ -25,4 +25,12 @@ jobs:
       - name: Test Formatting
         run: |
           rstfmt tests/test_file1.rst
+          echo "test_file1.rst"
+          echo "========="
+          cat tests/test_file1.rst
+          echo ""
+          echo "test_file2.rst"
+          echo "========="
+          cat tests/test_file2.rst
+          echo ""
           diff -q tests/test_file1.rst tests/test_file2.rst && echo "PASS" || echo "FAIL"
