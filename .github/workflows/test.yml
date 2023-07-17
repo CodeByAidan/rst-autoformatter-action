@@ -35,8 +35,8 @@ jobs:
           echo ""
           diff -q tests/test_file1.rst tests/test_file2.rst > /dev/null
           if [ $? -eq 0 ]; then
-            echo "PASS: Files are the same"
-          else
-            echo "FAIL: Files differ"
+            echo "FAIL: Files are the same"
             exit 1
+          else
+            echo "PASS: Files differ"
           fi
