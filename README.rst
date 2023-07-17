@@ -4,7 +4,8 @@
 
 A GitHub Action that automatically formats reStructuredText (rst) files
 in your project using ``rstfmt`` every time you make a push or a pull
-request.
+request. This is done with a bit of complicated shell madness, and
+Python.
 
 *******
  Usage
