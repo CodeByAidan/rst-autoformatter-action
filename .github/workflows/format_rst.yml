@@ -56,7 +56,7 @@ jobs:
       - name: Skip if files are identical
         run: |
           for file in ${{ matrix.files }}; do
-            skip_value="${{ env["skip_$file"] }}"
+            skip_value="${{ env['skip_' + file] }}"
             if [[ "$skip_value" == "true" ]]; then
               echo "Skipping further steps for $file."
             fi
@@ -65,7 +65,7 @@ jobs:
       - name: Replace files with formatted versions
         run: |
           for file in ${{ matrix.files }}; do
-            skip_value="${{ env["skip_$file"] }}"
+            skip_value="${{ env['skip_' + file] }}"
             if [[ "$skip_value" == "false" ]]; then
               mv "temp-$file" "$file"
             fi
