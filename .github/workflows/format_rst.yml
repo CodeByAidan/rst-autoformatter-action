@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         files:
-          - README.rst
+          - tests/*.rst
 
     steps:
       - name: Check out code
