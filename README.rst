@@ -17,16 +17,16 @@ a simple example of what your workflow might look like:
 .. code:: yaml
 
    name: Format RST files
-   
+
    on:
      push:
        branches:
          - main
-   
+
    jobs:
      format:
        runs-on: ubuntu-latest
-   
+
        strategy:
          matrix:
            files:
@@ -35,12 +35,12 @@ a simple example of what your workflow might look like:
        steps:
          - name: Check out code
            uses: actions/checkout@v3
-   
+
          - name: Set up Python
            uses: actions/setup-python@v4
            with:
              python-version: '3.10'
-   
+
          - name: Install dependencies
            run: |
              python -m pip install --upgrade pip
@@ -114,8 +114,6 @@ a simple example of what your workflow might look like:
                echo "No changes to commit. Skipping commit and push."
              fi
 
-
-
 **************
  Dependencies
 **************
@@ -131,7 +129,11 @@ file at the top of your directory:
 
    rstfmt
 
-Please make sure to modify the list of files under the ``matrix`` section of your workflow to match your specific requirements. You can include wildcards (``*``) to process multiple files in a directory such as ``tests/*.rst``, or you can simply use a specific file path like ``README.rst``.
+Please make sure to modify the list of files under the ``matrix``
+section of your workflow to match your specific requirements. You can
+include wildcards (``*``) to process multiple files in a directory such
+as ``tests/*.rst``, or you can simply use a specific file path like
+``README.rst``.
 
 *********
  License
