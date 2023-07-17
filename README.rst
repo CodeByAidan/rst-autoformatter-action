@@ -1,4 +1,4 @@
- RST AutoFormatter Action
+RST AutoFormatter Action
 =========================
 
 A GitHub Action that automatically formats reStructuredText (rst) files
