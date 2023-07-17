@@ -51,7 +51,7 @@ jobs:
       - name: Check if changes exist
         id: check_changes
         run: |
-          git diff --quiet || echo "::set-output name=changes::true"
+          git diff --quiet HEAD || echo "::set-output name=changes::true"
       
       - name: Create or update PR
         if: steps.check_pr.outputs.pr_exists == 'false' && steps.check_changes.outputs.changes == 'true'
