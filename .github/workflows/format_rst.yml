@@ -46,17 +46,17 @@ jobs:
         run: |
           for file in ${{ matrix.files }}; do
             if cmp -s "$file" "temp-$file"; then
-            echo "::set-output name=skip_$file::true"
-          else
-            echo "::set-output name=skip_$file::false"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              echo "::set-output name=skip_$file::true"
+            else
+              echo "::set-output name=skip_$file::false"
+            fi
+          done
 
       - name: Skip if files are identical
         run: |
           for file in ${{ matrix.files }}; do
-            if [[ "${{ needs.compare_files.outputs['skip_' + file] }}" == "true" ]]; then
+            skip_value="${{ needs.compare_files.outputs['skip_'.concat(file)] }}"
+            if [[ "$skip_value" == "true" ]]; then
               echo "Skipping further steps for $file."
             fi
           done
@@ -64,7 +64,8 @@ jobs:
       - name: Replace files with formatted versions
         run: |
           for file in ${{ matrix.files }}; do
-            if [[ "${{ needs.compare_files.outputs['skip_' + file] }}" == "false" ]]; then
+            skip_value="${{ needs.compare_files.outputs['skip_'.concat(file)] }}"
+            if [[ "$skip_value" == "false" ]]; then
               mv "temp-$file" "$file"
             fi
           done
