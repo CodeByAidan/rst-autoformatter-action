@@ -14,30 +14,56 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10' 
-        
+          python-version: '3.10'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-        
+
+      - name: Create temporary file
+        run: |
+          cp README.rst temp-README.rst
+
       - name: Format RST files
         run: |
-          rstfmt README.rst
-      
+          rstfmt temp-README.rst
+
+      - name: Compare files
+        id: compare_files
+        run: |
+          if cmp -s README.rst temp-README.rst; then
+            echo "Files are identical. Skipping further steps."
+            echo "::set-output name=skip_steps::true"
+          else
+            echo "Files are different."
+            echo "::set-output name=skip_steps::false"
+          fi
+
+      - name: Skip if files are identical
+        if: steps.compare_files.outputs.skip_steps == 'true'
+        run: |
+          echo "Skipping further steps."
+
+      - name: Replace README with formatted file
+        if: steps.compare_files.outputs.skip_steps != 'true'
+        run: |
+          mv temp-README.rst README.rst
+
       - name: Commit and push changes
+        if: steps.compare_files.outputs.skip_steps != 'true'
         run: |
           git config user.name "GitHub Actions"
           git config user.email "<>"
           git add README.rst
           git commit -m "Apply rstfmt formatting"
           git push
-        
-      - name: Create or update PR
+
+      - name: Check for existing PR
         id: check_pr
         uses: actions/github-script@v6
         with:
@@ -55,10 +81,33 @@ jobs:
             core.setOutput('pr_exists', existingPR ? 'true' : 'false');
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Create PR
-        if: steps.check_pr.outputs.pr_exists == 'false'
+
+      - name: Create or update PR
+        if: steps.check_pr.outputs.pr_exists == 'false' && steps.compare_files.outputs.skip_steps != 'true'
         run: |
           gh pr create --title "Format RST files" --body "Automated PR for formatting RST files" --base main --head "$(git branch --show-current)"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update existing PR
+        if: steps.check_pr.outputs.pr_exists == 'true' && steps.compare_files.outputs.skip_steps != 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { repo, owner } = context.repo;
+            const prNumber = '${{ steps.check_pr.outputs.pr_number }}';
+            if (prNumber) {
+              await github.rest.issues.createComment({
+                owner: owner,
+                repo: repo,
+                issue_number: prNumber,
+                body: "Updated by Job format"
+              });
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Remove temporary file
+        if: steps.compare_files.outputs.skip_steps != 'true'
+        run: |
+          rm temp-README.rst
