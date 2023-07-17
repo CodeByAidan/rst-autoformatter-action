@@ -33,4 +33,10 @@ jobs:
           echo "========="
           cat tests/test_file2.rst
           echo ""
-          diff -q tests/test_file1.rst tests/test_file2.rst && echo "PASS" || echo "FAIL"
+          diff -q tests/test_file1.rst tests/test_file2.rst > /dev/null
+          if [ $? -eq 0 ]; then
+            echo "FAIL: Files are the same"
+            exit 1
+          else
+            echo "PASS: Files differ"
+          fi
