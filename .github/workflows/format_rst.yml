@@ -25,21 +25,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
         
-      - name: Copy file for formatting
-        run: cp README.rst temp-README.rst
-      
       - name: Format RST files
         run: |
-          rstfmt temp-README.rst
-          echo "Formatted README.rst:"
-          cat temp-README.rst
+          rstfmt README.rst
       
-      - name: Compare file changes
-        id: compare_changes
+      - name: Commit and push changes
         run: |
-          git diff --quiet README.rst temp-README.rst || echo "::set-output name=changes::true"
-      
-      - name: Check for existing PR
+          git config user.name "GitHub Actions"
+          git config user.email "<>"
+          git add README.rst
+          git commit -m "Apply rstfmt formatting"
+          git push
+        
+      - name: Create or update PR
         id: check_pr
         uses: actions/github-script@v6
         with:
@@ -58,27 +56,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Create or update PR
-        if: steps.check_pr.outputs.pr_exists == 'false' && steps.compare_changes.outputs.changes == 'true'
+      - name: Create PR
+        if: steps.check_pr.outputs.pr_exists == 'false'
         run: |
           gh pr create --title "Format RST files" --body "Automated PR for formatting RST files" --base main --head "$(git branch --show-current)"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Update existing PR
-        if: steps.check_pr.outputs.pr_exists == 'true' && steps.compare_changes.outputs.changes == 'true'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { repo, owner } = context.repo;
-            const prNumber = '${{ steps.check_pr.outputs.pr_number }}';
-            if (prNumber) {
-              await github.rest.issues.createComment({
-                owner: owner,
-                repo: repo,
-                issue_number: prNumber,
-                body: "Updated by Job format"
-              });
-            }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
