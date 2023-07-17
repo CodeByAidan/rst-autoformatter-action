@@ -8,6 +8,13 @@ on:
 jobs:
   format:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        files:
+          - "README.rst"
+          - "tests/*.rst"
+
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -22,45 +29,57 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Create temporary file
-        run: |
-          cp README.rst temp-README.rst
-
       - name: Format RST files
         run: |
-          rstfmt temp-README.rst
+          for file in ${{ matrix.files }}; do
+            rstfmt "$file"
+          done
+
+      - name: Create temporary files
+        run: |
+          for file in ${{ matrix.files }}; do
+            cp "$file" "temp-$file"
+          done
 
       - name: Compare files
         id: compare_files
         run: |
-          if cmp -s README.rst temp-README.rst; then
-            echo "Files are identical. Skipping further steps."
-            echo "skip_steps=true" >> $GITHUB_ENV
-          else
-            echo "Files are different."
-            echo "skip_steps=false" >> $GITHUB_ENV
-          fi
+          for file in ${{ matrix.files }}; do
+            if cmp -s "$file" "temp-$file"; then
+              echo "File $file is identical. Skipping further steps."
+              echo "skip_${{ matrix.files[index] }}=true" >> $GITHUB_ENV
+            else
+              echo "File $file is different."
+              echo "skip_${{ matrix.files[index] }}=false" >> $GITHUB_ENV
+            fi
+          done
 
       - name: Skip if files are identical
-        if: env.skip_steps == 'true'
         run: |
-          echo "Skipping further steps."
+          for file in ${{ matrix.files }}; do
+            if [[ "${{ env["skip_$file"] }}" == "true" ]]; then
+              echo "Skipping further steps for $file."
+            fi
+          done
 
-      - name: Replace README with formatted file
-        if: env.skip_steps != 'true'
+      - name: Replace files with formatted versions
         run: |
-          mv temp-README.rst README.rst
+          for file in ${{ matrix.files }}; do
+            if [[ "${{ env["skip_$file"] }}" == "false" ]]; then
+              mv "temp-$file" "$file"
+            fi
+          done
 
-      - name: Remove temporary file
-        if: env.skip_steps != 'true'
+      - name: Remove temporary files
         run: |
-          rm -f temp-README.rst
+          for file in ${{ matrix.files }}; do
+            rm -f "temp-$file"
+          done
 
       - name: Commit and push changes
-        if: env.skip_steps != 'true'
         run: |
           git config user.name "GitHub Actions"
           git config user.email "<>"
-          git add README.rst
+          git add .
           git commit -m "Apply rstfmt formatting"
           git push
