@@ -80,6 +80,10 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "<>"
-          git add .
-          git commit -m "Apply rstfmt formatting"
-          git push
+          if [[ -n $(git status -s) ]]; then
+            git add .
+            git commit -m "Apply rstfmt formatting"
+            git push
+          else
+            echo "No changes to commit. Skipping commit and push."
+          fi
