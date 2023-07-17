@@ -1,21 +1,18 @@
-|  a
-
-|  a d b f
-
-|  a
+| a
+| a d
+   b f
+| a
+| b
+| c d
+| a
+|   b
+| c d
+| a
 |  b
-|  c d
+|   c
+|    d
 
-|  a
-|     b
-|  c d
-
-|  a
-|     b
-|        c
-|           d
-
-   |  a
-   |     b
-   |        c
-   |           d
+   | a
+   |  b
+   |   c
+   |    d
