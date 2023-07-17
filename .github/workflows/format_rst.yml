@@ -1,6 +1,9 @@
 name: Format RST files
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   format:
@@ -22,15 +25,9 @@ jobs:
       - name: Format RST files
         run: |
           rstfmt README.rst
-
-      - name: Commit changes
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git add .
-          git commit -m "Format RST files"
       
-      - name: Push changes
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create PR
+        run: |
+          gh pr create --title "Format RST files" --body "Automated PR for formatting RST files" --base main --head "$(git branch --show-current)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
