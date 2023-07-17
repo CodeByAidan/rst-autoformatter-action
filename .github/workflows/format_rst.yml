@@ -57,8 +57,7 @@ jobs:
       - name: Skip if files are identical
         run: |
           for file in ${{ matrix.files }}; do
-            skip_key="skip_$file"
-            skip_value="${{ env[skip_key] }}"
+            skip_value=$"{{ env['skip_' + file] }}"
             if [[ "$skip_value" == "true" ]]; then
               echo "Skipping further steps for $file."
             else
@@ -76,7 +75,14 @@ jobs:
       - name: Remove temporary files
         run: |
           for file in ${{ matrix.files }}; do
-            rm -f "temp-$file"
+            if [[ "$file" == */* ]]; then
+              dir=$(dirname "$file")
+              filename=$(basename "$file")
+              temp_file="$dir/temp-$filename"
+            else
+              temp_file="temp-$file"
+            fi
+            rm -f "$temp_file"
           done
       - name: Commit and push changes
         run: |
@@ -89,3 +95,4 @@ jobs:
           else
             echo "No changes to commit. Skipping commit and push."
           fi
+
