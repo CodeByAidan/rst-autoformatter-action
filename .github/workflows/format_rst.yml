@@ -26,8 +26,35 @@ jobs:
         run: |
           rstfmt README.rst
       
-      - name: Create PR
+      - name: Check for existing PR
+        id: check_pr
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { repo, owner } = context.repo;
+            const pulls = await github.rest.pulls.list({
+              owner: owner,
+              repo: repo,
+              head: context.ref,
+              base: 'main',
+              state: 'open',
+            });
+            const existingPR = pulls.data[0];
+            core.setOutput("pr_number", existingPR ? existingPR.number : "");
+            core.setOutput("pr_exists", existingPR ? "true" : "false")
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create or update PR
+        if: steps.check_pr.outputs.pr_exists == 'false'
         run: |
           gh pr create --title "Format RST files" --body "Automated PR for formatting RST files" --base main --head "$(git branch --show-current)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Update existing PR
+        if: steps.check_pr.outputs.pr_exists == 'true'
+        run: |
+          gh pr comment ${GITHUB_REPOSITORY} --body "Updated by Job ${{ github.job }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
