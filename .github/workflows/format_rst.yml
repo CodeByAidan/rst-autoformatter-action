@@ -48,15 +48,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
+      - name: Check if changes exist
+        id: check_changes
+        run: |
+          git diff --quiet || echo "::set-output name=changes::true"
+      
       - name: Create or update PR
-        if: steps.check_pr.outputs.pr_exists == 'false'
+        if: steps.check_pr.outputs.pr_exists == 'false' && steps.check_changes.outputs.changes == 'true'
         run: |
           gh pr create --title "Format RST files" --body "Automated PR for formatting RST files" --base main --head "$(git branch --show-current)"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Update existing PR
-        if: steps.check_pr.outputs.pr_exists == 'true'
+        if: steps.check_pr.outputs.pr_exists == 'true' && steps.check_changes.outputs.changes == 'true'
         uses: actions/github-script@v6
         with:
           script: |
