@@ -57,6 +57,8 @@ jobs:
             skip_value=$"{{ env['skip_' + file] }}"
             if [[ "$skip_value" == "true" ]]; then
               echo "Skipping further steps for $file."
+            else
+              echo "Continuing with further steps for $file."
             fi
           done
 
