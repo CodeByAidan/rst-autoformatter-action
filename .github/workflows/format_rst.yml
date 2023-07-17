@@ -47,10 +47,10 @@ jobs:
           for file in ${{ matrix.files }}; do
             if cmp -s "$file" "temp-$file"; then
               echo "File $file is identical. Skipping further steps."
-              echo "skip_${{ matrix.files[index] }}=true" >> $GITHUB_ENV
+              echo "skip_$file=true" >> $GITHUB_ENV
             else
               echo "File $file is different."
-              echo "skip_${{ matrix.files[index] }}=false" >> $GITHUB_ENV
+              echo "skip_$file=false" >> $GITHUB_ENV
             fi
           done
 
