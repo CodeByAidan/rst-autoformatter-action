@@ -12,8 +12,7 @@ jobs:
     strategy:
       matrix:
         files:
-          - README.rst
-          - "tests/*.rst"
+          - "README.rst"
 
     steps:
       - name: Check out code
@@ -31,9 +30,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Create tests directory
-        run: mkdir -p tests
-
       - name: Format RST files
         run: |
           for file in ${{ matrix.files }}; do
@@ -42,10 +38,9 @@ jobs:
 
       - name: Create temporary files
         run: |
-          for file in tests/*.rst; do
-            cp "$file" "temp-${{ file }}"
+          for file in ${{ matrix.files }}; do
+            cp "$file" "temp-$file"
           done
-
 
       - name: Compare files
         id: compare_files
