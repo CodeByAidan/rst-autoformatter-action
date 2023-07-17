@@ -37,7 +37,14 @@ jobs:
       - name: Create temporary files
         run: |
           for file in ${{ matrix.files }}; do
-            cp "$file" "temp-$file"
+            if [[ "$file" == */* ]]; then
+              dir=$(dirname "$file")
+              filename=$(basename "$file")
+              temp_file="$dir/temp-$filename"
+            else
+              temp_file="temp-$file"
+            fi
+            cp "$file" "$temp_file"
           done
 
       - name: Compare files
