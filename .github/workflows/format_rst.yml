@@ -27,11 +27,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          
       - name: Format RST files
         run: |
           for file in ${{ matrix.files }}; do
             rstfmt "$file"
           done
+          
       - name: Create temporary files
         run: |
           for file in ${{ matrix.files }}; do
@@ -44,6 +46,7 @@ jobs:
             fi
             cp "$file" "$temp_file"
           done
+          
       - name: Compare files
         id: compare_files
         run: |
@@ -54,6 +57,7 @@ jobs:
               echo "skip_$file=false" >> $GITHUB_ENV
             fi
           done
+          
       - name: Skip if files are identical
         run: |
           for file in ${{ matrix.files }}; do
@@ -64,6 +68,7 @@ jobs:
               echo "Continuing with further steps for $file."
             fi
           done
+          
       - name: Replace files with formatted versions
         run: |
           for file in ${{ matrix.files }}; do
@@ -72,6 +77,7 @@ jobs:
               mv "temp-$file" "$file"
             fi
           done
+          
       - name: Remove temporary files
         run: |
           for file in ${{ matrix.files }}; do
@@ -84,6 +90,7 @@ jobs:
             fi
             rm -f "$temp_file"
           done
+          
       - name: Commit and push changes
         run: |
           git config user.name "GitHub Actions"
@@ -95,4 +102,3 @@ jobs:
           else
             echo "No changes to commit. Skipping commit and push."
           fi
-
