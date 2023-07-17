@@ -1,5 +1,6 @@
-RST AutoFormatter Action
-=========================
+##########################
+ RST AutoFormatter Action
+##########################
 
 A GitHub Action that automatically formats reStructuredText (rst) files
 in your project using ``rstfmt`` every time you make a push or a pull
