@@ -35,13 +35,13 @@ jobs:
             const pulls = await github.rest.pulls.list({
               owner: owner,
               repo: repo,
-              head: context.ref,
+              head: `${owner}:${context.ref}`,
               base: 'main',
               state: 'open',
             });
-            const existingPR = pulls.data[0];
-            core.setOutput("pr_number", existingPR ? existingPR.number : "");
-            core.setOutput("pr_exists", existingPR ? "true" : "false")
+            const existingPR = pulls.data.find(pr => pr.user.login === 'github-actions[bot]' && pr.title === 'Format RST files');
+            core.setOutput('pr_number', existingPR ? existingPR.number : '');
+            core.setOutput('pr_exists', existingPR ? 'true' : 'false');
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
@@ -58,7 +58,7 @@ jobs:
         with:
           script: |
             const { repo, owner } = context.repo;
-            const prNumber = ${steps.check_pr.outputs.pr_number};
+            const prNumber = '${{ steps.check_pr.outputs.pr_number }}';
             if (prNumber) {
               await github.rest.issues.createComment({
                 owner: owner,
