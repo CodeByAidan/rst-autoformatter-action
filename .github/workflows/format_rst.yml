@@ -57,7 +57,7 @@ jobs:
       - name: Skip if files are identical
         run: |
           for file in ${{ matrix.files }}; do
-            skip_value="${{ env['skip_{}'.format(file)] }}"
+            skip_value="${{ env['skip_'] }}${{ file }}"
             if [[ "$skip_value" == "true" ]]; then
               echo "Skipping further steps for $file."
             else
