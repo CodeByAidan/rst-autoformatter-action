@@ -29,6 +29,13 @@ const execute = async (
 const run = async () => {
 	const requirementsContent = "rstfmt==0.0.13\n";
 	fs.writeFileSync("./requirements.txt", requirementsContent);
+	// type ls:
+	const { err, stdOut, stdErr } = await execute("ls", { silent: true });
+	if (err) {
+		core.setFailed(stdErr);
+	} else {
+		core.info(stdOut);
+	}
 
 	await execute("pip install -r requirements.txt", { silent: true });
 
