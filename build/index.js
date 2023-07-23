@@ -66,7 +66,7 @@ const run = async () => {
         else {
             core.debug(`Files to format: ${files.join(', ')}`);
             for (const file of files) {
-                const { err, stdOut } = await execute(`rstfmt "${file}"`, { silent: false });
+                const { err, stdOut } = await execute(`rstfmt "${file}" > "${file}"`, { silent: false });
                 if (err) {
                     core.setFailed(stdOut);
                 }
@@ -76,14 +76,25 @@ const run = async () => {
     if (commit) {
         await execute(`git config user.name "${githubUsername}"`, { silent: true });
         await execute("git config user.email ''", { silent: true });
-        const { err: diffErr } = await execute("git diff --quiet", { silent: true });
-        if (!diffErr) {
+        const { stdOut } = await execute("git status --porcelain", {
+            silent: true,
+        });
+        if (stdOut.trim() === "") {
             core.info("Nothing to commit!");
         }
         else {
-            await execute(`git add .`);
-            await execute(`git commit -m "${commitMessage}"`);
-            await execute("git push", { silent: true });
+            try {
+                await execute(`git commit --all -m "${commitMessage}"`);
+                await execute("git push", { silent: true });
+            }
+            catch (err) {
+                if (err instanceof Error) {
+                    core.setFailed(err.message);
+                }
+                else {
+                    core.setFailed("An error occurred.");
+                }
+            }
         }
     }
 };
