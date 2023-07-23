@@ -50,7 +50,7 @@ const run = async () => {
     } else {
       core.debug(`Files to format: ${files.join(", ")}`);
       const formatPromises = files.map((file) =>
-        execute(`rstfmt "${file}" > "temp-${file}"`, { silent: false })
+        execute(`rstfmt "${file}" > "${file}.temp"`, { silent: true })
       );
       const results = await Promise.all(formatPromises);
 
@@ -61,16 +61,16 @@ const run = async () => {
       }
 
       for (const file of files) {
-        const tempFile = `temp-${file}`;
-        const original = fs.readFileSync(file);
-        const formatted = fs.readFileSync(tempFile);
+        const tempFile = `${file}.temp`;
+        const original = fs.readFileSync(file, "utf8");
+        const formatted = fs.readFileSync(tempFile, "utf8");
 
-        if (!original.equals(formatted)) {
-          fs.copyFileSync(tempFile, file);
+        if (original !== formatted) {
+          fs.renameSync(tempFile, file);
           await execute(`git add "${file}"`);
+        } else {
+          fs.unlinkSync(tempFile);
         }
-
-        fs.unlinkSync(tempFile);
       }
     }
   });
