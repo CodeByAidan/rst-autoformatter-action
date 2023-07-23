@@ -3,6 +3,15 @@ import { ExecOptions } from "@actions/exec";
 import { exec as cpExec } from 'child_process';
 import * as fs from "fs";
 import * as glob from "glob";
+import * as os from "os";
+import * as path from "path";
+
+
+interface ExecuteReturn {
+	err: boolean;
+	stdOut: string;
+	stdErr: string;
+}
 
 const execute = async (command: string, options: ExecOptions & { listeners?: any, shell?: string } = {}): Promise<ExecuteReturn> => {
 	let stdOut = "";
@@ -49,20 +58,17 @@ const run = async () => {
 
 	for (const file of files) {
 		const original: string = fs.readFileSync(file, "utf-8");
-		const tmpFile: string = `${file}.tmp`;
+		const tempFile: string = path.join(os.tmpdir(), path.basename(file));
 
-		await execute(`rstfmt "${file}" > "${file}"`, { silent: false, ...{ shell: '/bin/bash' } });
-
-		const formatted: string = fs.readFileSync(tmpFile, "utf-8");
-		fs.unlinkSync(tmpFile);
-
-		fs.writeFileSync(file, formatted, "utf-8");
+		await execute(`rstfmt "${file}" > "${tempFile}"`);
+		const formatted: string = fs.readFileSync(tempFile, "utf-8");
+		fs.unlinkSync(tempFile); // remove temporary file
 
 		if (original !== formatted && commit) {
+			fs.writeFileSync(file, formatted, 'utf8');
 			await execute(`git add "${file}"`);
 		}
 	}
-
 
 	if (commit) {
 		await execute(`git config user.name "${githubUsername}"`, { silent: false });
