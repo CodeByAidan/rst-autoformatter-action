@@ -46,13 +46,11 @@ const run = async () => {
             core.setFailed(err.message);
         } else {
             core.debug(`Files to format: ${files.join(', ')}`);
-            for (const file of files) {
-                const { err, stdOut } = await execute(`rstfmt "${file}"`, { silent: false });
-                if (err) {
-                    core.setFailed(stdOut);
-                } else {
-                    // Write the formatted content back to the file.
-                    fs.writeFileSync(file, stdOut);
+            const formatPromises = files.map(file => execute(`rstfmt "${file}" > "${file}"`, { silent: false }));
+            const results = await Promise.all(formatPromises);
+            for (const result of results) {
+                if (result.err) {
+                    core.setFailed(result.stdOut);
                 }
             }
         }
