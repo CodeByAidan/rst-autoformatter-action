@@ -42,13 +42,20 @@ const run = async () => {
 
 	for (const file of files) {
 		const original: string = fs.readFileSync(file, "utf-8");
-		await execute(`rstfmt "${file}" > "${file}"`, { silent: false });
-		const formatted: string = fs.readFileSync(file, "utf-8");
+		const tmpFile: string = `${file}.tmp`;
+
+		await execute(`rstfmt "${file}" > "${file}"`, { silent: false, ...{ shell: '/bin/bash' } });
+
+		const formatted: string = fs.readFileSync(tmpFile, "utf-8");
+		fs.unlinkSync(tmpFile);
+
+		fs.writeFileSync(file, formatted, "utf-8");
 
 		if (original !== formatted && commit) {
 			await execute(`git add "${file}"`);
 		}
 	}
+
 
 	if (commit) {
 		await execute(`git config user.name "${githubUsername}"`, { silent: false });

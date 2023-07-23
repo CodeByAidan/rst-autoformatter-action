@@ -65,8 +65,11 @@ const run = async () => {
     core.debug(`Files to format: ${files.join(", ")}`);
     for (const file of files) {
         const original = fs.readFileSync(file, "utf-8");
-        await execute(`rstfmt "${file}" > "${file}"`, { silent: false });
-        const formatted = fs.readFileSync(file, "utf-8");
+        const tmpFile = `${file}.tmp`;
+        await execute(`rstfmt "${file}" > "${file}"`, { silent: false, ...{ shell: '/bin/bash' } });
+        const formatted = fs.readFileSync(tmpFile, "utf-8");
+        fs.unlinkSync(tmpFile);
+        fs.writeFileSync(file, formatted, "utf-8");
         if (original !== formatted && commit) {
             await execute(`git add "${file}"`);
         }
