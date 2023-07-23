@@ -62,6 +62,7 @@ const run = async () => {
             core.setFailed(err.message);
         }
         else {
+            core.debug(`Files to format: ${files.join(', ')}`);
             for (const file of files) {
                 await execute(`rstfmt "${file}"`, { silent: true });
             }
