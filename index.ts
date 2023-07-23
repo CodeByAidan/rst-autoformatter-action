@@ -27,44 +27,46 @@ const execute = async (
 };
 
 const run = async () => {
-	await execute("pip install rstfmt==0.0.13", { silent: true });
+    await execute("sudo apt-get update", { silent: true });
+    await execute("sudo apt-get install -y python3.10 python3-pip", { silent: true });
+    await execute("pip3 install rstfmt==0.0.13", { silent: true });
 
-	const filesPattern = core.getInput("files") || "**/*.rst";
+    const filesPattern = core.getInput("files") || "**/*.rst";
 
-	const commitString = core.getInput("commit") || "true";
-	const commit = commitString.toLowerCase() !== "false";
+    const commitString = core.getInput("commit") || "true";
+    const commit = commitString.toLowerCase() !== "false";
 
-	const githubUsername = core.getInput("github-username") || "github-actions";
+    const githubUsername = core.getInput("github-username") || "github-actions";
 
-	const commitMessage = core.getInput("commit-message") || "Format Java";
+    const commitMessage = core.getInput("commit-message") || "Format Java";
 
-	const glob = require("glob");
-	glob(filesPattern, async (err: Error, files: string[]) => {
-		if (err) {
-			core.setFailed(err.message);
-		} else {
+    const glob = require("glob");
+    glob(filesPattern, async (err: Error, files: string[]) => {
+        if (err) {
+            core.setFailed(err.message);
+        } else {
             core.debug(`Files to format: ${files.join(', ')}`);
             for (const file of files) {
                 await execute(`rstfmt "${file}"`, { silent: true });
             }
-		}
-	});
+        }
+    });
 
-	if (commit) {
-		await execute(`git config user.name "${githubUsername}"`, { silent: true });
-		await execute("git config user.email ''", { silent: true });
+    if (commit) {
+        await execute(`git config user.name "${githubUsername}"`, { silent: true });
+        await execute("git config user.email ''", { silent: true });
 
-		const { err } = await execute("git diff-index --quiet HEAD", {
-			silent: true,
-		});
+        const { err } = await execute("git diff-index --quiet HEAD", {
+            silent: true,
+        });
 
-		if (!err) {
-			core.info("Nothing to commit!");
-		} else {
-			await execute(`git commit --all -m "${commitMessage}"`);
-			await execute("git push", { silent: true });
-		}
-	}
+        if (!err) {
+            core.info("Nothing to commit!");
+        } else {
+            await execute(`git commit --all -m "${commitMessage}"`);
+            await execute("git push", { silent: true });
+        }
+    }
 };
 
 try {

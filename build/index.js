@@ -50,7 +50,9 @@ const execute = async (command, options = {}) => {
     return { err: exitCode !== 0, stdErr, stdOut };
 };
 const run = async () => {
-    await execute("pip install rstfmt==0.0.13", { silent: true });
+    await execute("sudo apt-get update", { silent: true });
+    await execute("sudo apt-get install -y python3.10 python3-pip", { silent: true });
+    await execute("pip3 install rstfmt==0.0.13", { silent: true });
     const filesPattern = core.getInput("files") || "**/*.rst";
     const commitString = core.getInput("commit") || "true";
     const commit = commitString.toLowerCase() !== "false";
