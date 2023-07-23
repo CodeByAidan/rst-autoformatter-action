@@ -1,15 +1,14 @@
 import * as core from "@actions/core";
-import { exec, ExecOptions } from "@actions/exec";
+import { ExecOptions } from "@actions/exec";
+import { exec as cpExec } from 'child_process';
 import * as fs from "fs";
 import * as glob from "glob";
 
-type ExecuteReturn = { err: boolean, stdOut: string, stdErr: string };
-
-const execute = async (command: string, options: ExecOptions & { listeners?: any } = {}): Promise<ExecuteReturn> => {
+const execute = async (command: string, options: ExecOptions & { listeners?: any, shell?: string } = {}): Promise<ExecuteReturn> => {
 	let stdOut = "";
 	let stdErr = "";
 
-	const execOptions: ExecOptions & { listeners?: any } = {
+	const execOptions: ExecOptions & { listeners?: any, shell?: string } = {
 		...options,
 		listeners: {
 			stdout: (data: Buffer) => {
@@ -20,10 +19,18 @@ const execute = async (command: string, options: ExecOptions & { listeners?: any
 			},
 			...options.listeners,
 		},
+		shell: options.shell || '/bin/bash',
 	};
 
-	const exitCode = await exec(command, [], execOptions);
-	return { err: exitCode !== 0, stdOut, stdErr };
+	return new Promise((resolve, reject) => {
+		cpExec(command, { shell: execOptions.shell }, (error, stdout, stderr) => {
+			if (error) {
+				console.error(`exec error: ${error}`);
+				resolve({ err: true, stdOut: stdout, stdErr: stderr });
+			}
+			resolve({ err: false, stdOut: stdout, stdErr: stderr });
+		});
+	});
 };
 
 const run = async () => {
