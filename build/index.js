@@ -70,9 +70,6 @@ const run = async () => {
                 if (err) {
                     core.setFailed(stdOut);
                 }
-                else {
-                    core.info(stdOut);
-                }
             }
         }
     });
@@ -82,12 +79,21 @@ const run = async () => {
         const { err, stdOut } = await execute("git diff-index --quiet HEAD", {
             silent: true,
         });
-        if (!err) {
-            core.info("Nothing to commit!");
-        }
-        else {
+        // no.
+        // if (!err) {
+        //     core.info("Nothing to commit!");
+        // } else {
+        try {
             await execute(`git commit --all -m "${commitMessage}"`);
             await execute("git push", { silent: true });
+        }
+        catch (err) {
+            if (err instanceof Error) {
+                core.setFailed(err.message);
+            }
+            else {
+                core.setFailed("An error occurred.");
+            }
         }
     }
 };

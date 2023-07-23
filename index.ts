@@ -50,8 +50,6 @@ const run = async () => {
                 const { err, stdOut } = await execute(`rstfmt "${file}"`, { silent: false });
 				if (err) {
 					core.setFailed(stdOut);
-				} else {
-					core.info(stdOut);
 				}
             }
         }
@@ -65,12 +63,20 @@ const run = async () => {
             silent: true,
         });
 
-        if (!err) {
-            core.info("Nothing to commit!");
-        } else {
+		// no.
+        // if (!err) {
+        //     core.info("Nothing to commit!");
+        // } else {
+		try {
             await execute(`git commit --all -m "${commitMessage}"`);
             await execute("git push", { silent: true });
-        }
+		} catch (err: unknown) {
+			if (err instanceof Error) {
+				core.setFailed(err.message);
+			} else {
+				core.setFailed("An error occurred.");
+			}
+		}
     }
 };
 
