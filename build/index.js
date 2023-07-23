@@ -53,7 +53,8 @@ const execute = async (command, options = {}) => {
 const run = async () => {
     const requirementsContent = "rstfmt==0.0.13\n";
     fs.writeFileSync("./requirements.txt", requirementsContent);
-    await execute("ls"); // For debugging
+    // type "ls" on the command line and execute it:
+    await execute("echo $HOME", { silent: true });
     await execute("pip install -r requirements.txt", { silent: true });
     const filesPattern = core.getInput("files") || "**/*.rst";
     const commitString = core.getInput("commit") || "true";
