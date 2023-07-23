@@ -76,23 +76,14 @@ const run = async () => {
     if (commit) {
         await execute(`git config user.name "${githubUsername}"`, { silent: true });
         await execute("git config user.email ''", { silent: true });
-        const { err: changesToCommit } = await execute("git diff --quiet", { silent: true });
-        if (changesToCommit) {
-            try {
-                await execute(`git commit --all -m "${commitMessage}"`);
-                await execute("git push", { silent: true });
-            }
-            catch (err) {
-                if (err instanceof Error) {
-                    core.setFailed(err.message);
-                }
-                else {
-                    core.setFailed("An error occurred.");
-                }
-            }
+        const { err: diffErr } = await execute("git diff --quiet", { silent: true });
+        if (!diffErr) {
+            core.info("Nothing to commit!");
         }
         else {
-            core.info("Nothing to commit!");
+            await execute(`git add .`);
+            await execute(`git commit -m "${commitMessage}"`);
+            await execute("git push", { silent: true });
         }
     }
 };
