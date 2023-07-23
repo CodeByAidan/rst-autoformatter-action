@@ -1,90 +1,70 @@
 import * as core from "@actions/core";
 import * as fs from "fs";
 import * as path from "path";
-import { exec, ExecOptions } from "@actions/exec";
+import { exec, ExecException } from "child_process";
+import glob from "glob";
 
-const execute = async (
-  command: string,
-  options: ExecOptions & { silent?: boolean } = {}
-) => {
-  let stdOut = "";
-  let stdErr = "";
+type CommandResult = { err: boolean; stdOut: string; stdErr: string };
+type ExecOptions = { silent?: boolean };
 
-  const execOptions: ExecOptions = {
-    ...options,
-    listeners: {
-      stdout: (data: Buffer) => {
-        stdOut += data.toString();
-      },
-      stderr: (data: Buffer) => {
-        stdErr += data.toString();
-      },
-    },
-  };
-
-  const exitCode = await exec(command, undefined, execOptions);
-
-  return { err: exitCode !== 0, stdErr, stdOut };
+const execute = (command: string, options: ExecOptions = {}): Promise<CommandResult> => {
+  return new Promise<CommandResult>((resolve) => {
+    exec(command, (error: ExecException | null, stdOut: string, stdErr: string) => {
+      if (options.silent !== true) {
+        console.log(stdOut);
+        console.error(stdErr);
+      }
+      resolve({ err: error !== null, stdOut, stdErr });
+    });
+  });
 };
 
-const run = async () => {
+const run = async (): Promise<void> => {
+  const filesPattern: string = core.getInput("files") || "**/*.rst";
+  const commitString: string = core.getInput("commit") || "true";
+  const commit: boolean = commitString.toLowerCase() !== "false";
+  const githubUsername: string = core.getInput("github-username") || "github-actions";
+  const commitMessage: string = core.getInput("commit-message") || "Apply rstfmt formatting";
+
   await execute("sudo apt-get update", { silent: true });
-  await execute("sudo apt-get install -y python3.10 python3-pip", {
-    silent: true,
-  });
+  await execute("sudo apt-get install -y python3.10 python3-pip", { silent: true });
   await execute("pip3 install rstfmt==0.0.13", { silent: true });
 
-  const filesPattern = core.getInput("files") || "**/*.rst";
-
-  const commitString = core.getInput("commit") || "true";
-  const commit = commitString.toLowerCase() !== "false";
-
-  const githubUsername = core.getInput("github-username") || "github-actions";
-
-  const commitMessage = core.getInput("commit-message") || "Format Java";
-
-  const glob = require("glob");
-  glob(filesPattern, async (err: Error, files: string[]) => {
+  glob(filesPattern, async (err: Error | null, files: string[]) => {
     if (err) {
       core.setFailed(err.message);
-    } else {
-      core.debug(`Files to format: ${files.join(", ")}`);
-      const formatPromises = files.map((file) =>
-        execute(`rstfmt "${file}" > "${file}.temp"`, { silent: true })
-      );
-      const results = await Promise.all(formatPromises);
+      return;
+    }
 
-      for (const result of results) {
-        if (result.err) {
-          core.setFailed(result.stdOut);
-        }
+    core.debug(`Files to format: ${files.join(", ")}`);
+    for (const file of files) {
+      const tempFile: string = path.join(path.dirname(file), `temp-${path.basename(file)}`);
+      const { stdErr }: CommandResult = await execute(`rstfmt "${file}" > "${tempFile}"`, { silent: true });
+      if (stdErr) {
+        core.setFailed(stdErr);
+        return;
       }
 
-      for (const file of files) {
-        const tempFile = `${file}.temp`;
-        const original = fs.readFileSync(file, "utf8");
-        const formatted = fs.readFileSync(tempFile, "utf8");
+      const original: string = fs.readFileSync(file, "utf8");
+      const formatted: string = fs.readFileSync(tempFile, "utf8");
 
-        if (original !== formatted) {
-          fs.renameSync(tempFile, file);
-          await execute(`git add "${file}"`);
-        } else {
-          fs.unlinkSync(tempFile);
-        }
+      if (original !== formatted) {
+        fs.renameSync(tempFile, file);
+        await execute(`git add "${file}"`);
+      } else {
+        fs.unlinkSync(tempFile);
       }
     }
   });
 
   if (commit) {
     await execute(`git config user.name "${githubUsername}"`, { silent: true });
-    await execute("git config user.email ''", { silent: true });
+    await execute("git config user.email '<>'", { silent: true });
 
-    const { stdOut } = await execute("git status --porcelain", {
-      silent: true,
-    });
+    const { stdOut }: CommandResult = await execute("git status -s", { silent: true });
 
     if (stdOut.trim() === "") {
-      core.info("Nothing to commit!");
+      core.info("No changes to commit. Skipping commit and push.");
     } else {
       try {
         await execute(`git commit -m "${commitMessage}"`);
