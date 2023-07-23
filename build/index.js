@@ -52,7 +52,9 @@ const execute = async (command, options = {}) => {
 };
 const run = async () => {
     await execute("sudo apt-get update", { silent: true });
-    await execute("sudo apt-get install -y python3.10 python3-pip", { silent: true });
+    await execute("sudo apt-get install -y python3.10 python3-pip", {
+        silent: true,
+    });
     await execute("pip3 install rstfmt==0.0.13", { silent: true });
     const filesPattern = core.getInput("files") || "**/*.rst";
     const commitString = core.getInput("commit") || "true";
@@ -65,16 +67,23 @@ const run = async () => {
             core.setFailed(err.message);
         }
         else {
-            core.debug(`Files to format: ${files.join(', ')}`);
+            core.debug(`Files to format: ${files.join(", ")}`);
+            const formatPromises = files.map((file) => execute(`rstfmt "${file}" > "temp-${file}"`, { silent: false }));
+            const results = await Promise.all(formatPromises);
+            for (const result of results) {
+                if (result.err) {
+                    core.setFailed(result.stdOut);
+                }
+            }
             for (const file of files) {
-                const { err, stdOut } = await execute(`rstfmt "${file}"`, { silent: false });
-                if (err) {
-                    core.setFailed(stdOut);
+                const tempFile = `temp-${file}`;
+                const original = fs.readFileSync(file);
+                const formatted = fs.readFileSync(tempFile);
+                if (!original.equals(formatted)) {
+                    fs.copyFileSync(tempFile, file);
+                    await execute(`git add "${file}"`);
                 }
-                else {
-                    // Write the formatted content back to the file.
-                    fs.writeFileSync(file, stdOut);
-                }
+                fs.unlinkSync(tempFile);
             }
         }
     });
@@ -89,7 +98,7 @@ const run = async () => {
         }
         else {
             try {
-                await execute(`git commit --all -m "${commitMessage}"`);
+                await execute(`git commit -m "${commitMessage}"`);
                 await execute("git push", { silent: true });
             }
             catch (err) {
