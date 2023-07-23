@@ -57,9 +57,8 @@ const run = async () => {
         await execute("git config user.email ''", { silent: true });
 
         const { err, stdOut } = await execute("git diff-index --quiet HEAD", {
-            silent: true,
+            // silent: true,
         });
-		core.debug(stdOut);
 
         if (!err) {
             core.info("Nothing to commit!");
