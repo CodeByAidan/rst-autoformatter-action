@@ -31,7 +31,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const fs = __importStar(__nccwpck_require__(7147));
 const exec_1 = __nccwpck_require__(1514);
 const execute = async (command, options = {}) => {
     let stdOut = "";
@@ -51,11 +50,7 @@ const execute = async (command, options = {}) => {
     return { err: exitCode !== 0, stdErr, stdOut };
 };
 const run = async () => {
-    const requirementsContent = "rstfmt==0.0.13\n";
-    fs.writeFileSync("./requirements.txt", requirementsContent);
-    // type "ls" on the command line and execute it:
-    await execute("echo $HOME", { silent: true });
-    await execute("pip install -r requirements.txt", { silent: true });
+    await execute("pip install rstfmt==0.0.13", { silent: true });
     const filesPattern = core.getInput("files") || "**/*.rst";
     const commitString = core.getInput("commit") || "true";
     const commit = commitString.toLowerCase() !== "false";
@@ -75,7 +70,6 @@ const run = async () => {
     if (commit) {
         await execute(`git config user.name "${githubUsername}"`, { silent: true });
         await execute("git config user.email ''", { silent: true });
-        fs.unlinkSync("./requirements.txt"); // Remove temporary requirements.txt
         const { err } = await execute("git diff-index --quiet HEAD", {
             silent: true,
         });
