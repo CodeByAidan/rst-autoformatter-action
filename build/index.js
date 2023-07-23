@@ -31,6 +31,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
+const fs = __importStar(__nccwpck_require__(7147));
 const exec_1 = __nccwpck_require__(1514);
 const execute = async (command, options = {}) => {
     let stdOut = "";
@@ -66,9 +67,13 @@ const run = async () => {
         else {
             core.debug(`Files to format: ${files.join(', ')}`);
             for (const file of files) {
-                const { err, stdOut } = await execute(`rstfmt "${file}" > "${file}"`, { silent: false });
+                const { err, stdOut } = await execute(`rstfmt "${file}"`, { silent: false });
                 if (err) {
                     core.setFailed(stdOut);
+                }
+                else {
+                    // Write the formatted content back to the file.
+                    fs.writeFileSync(file, stdOut);
                 }
             }
         }
