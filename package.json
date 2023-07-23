@@ -12,7 +12,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/glob": "^8.1.0",
-    "@types/node": "^17.0.45",
+    "@types/node": "^18.0.0",
     "@types/prettier": "^2.6.0",
     "@vercel/ncc": "^0.33.4",
     "nodemon": "^2.0.15",
