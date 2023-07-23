@@ -66,7 +66,13 @@ const run = async () => {
         else {
             core.debug(`Files to format: ${files.join(', ')}`);
             for (const file of files) {
-                await execute(`rstfmt "${file}"`, { silent: true });
+                const { err, stdOut } = await execute(`rstfmt "${file}"`, { silent: false });
+                if (err) {
+                    core.setFailed(stdOut);
+                }
+                else {
+                    core.info(stdOut);
+                }
             }
         }
     });
@@ -74,7 +80,7 @@ const run = async () => {
         await execute(`git config user.name "${githubUsername}"`, { silent: true });
         await execute("git config user.email ''", { silent: true });
         const { err, stdOut } = await execute("git diff-index --quiet HEAD", {
-        // silent: true,
+            silent: true,
         });
         if (!err) {
             core.info("Nothing to commit!");
