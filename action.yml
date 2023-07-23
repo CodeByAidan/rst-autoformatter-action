@@ -1,0 +1,25 @@
+name: format-rst-files-action
+description: 'A GitHub Action to format RST files using rstfmt'
+branding:
+  icon: file-text
+  color: white
+inputs:
+  files:
+    description: 'Pattern to match the files to be formatted.'
+    required: false
+    default: '**/*.rst'
+  commit:
+    description: 'Whether or not you want the action to push to your repo with the formatting.'
+    required: false
+    default: 'true'
+  github-username:
+    description: 'Username for the github action to commit with.'
+    required: false
+    default: 'github-actions'
+  commit-message:
+    description: 'Message for formatter commit.'
+    required: false
+    default: 'Format Rst'
+runs:
+  using: node16
+  main: 'build/index.js'

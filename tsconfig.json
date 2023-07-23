@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		/* Language and Environment */
+		"target": "es2020",
+		"lib": ["es2020"],
+
+		/* Modules */
+		"module": "commonjs",
+		"rootDir": "./",
+		"moduleResolution": "node",
+		"baseUrl": "./",
+
+		/* Emit */
+		"declaration": false,
+		"declarationMap": false,
+		"outDir": "dist",
+
+		/* Interop Constraints */
+		"isolatedModules": true,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+
+		/* Type Checking */
+		"strict": true,
+
+		/* Completeness */
+		"skipLibCheck": true
+	}
+}
