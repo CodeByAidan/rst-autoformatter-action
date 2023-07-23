@@ -58,26 +58,26 @@ const run = async () => {
     const commit = commitString.toLowerCase() !== "false";
     const githubUsername = core.getInput("github-username") || "github-actions";
     const commitMessage = core.getInput("commit-message") || "Apply rstfmt formatting";
-    await execute("sudo apt-get update", { silent: true });
-    await execute("sudo apt-get install -y python3.10 python3-pip", { silent: true });
-    await execute("pip3 install rstfmt==0.0.13", { silent: true });
+    await execute("sudo apt-get update", { silent: false });
+    await execute("sudo apt-get install -y python3.10 python3-pip", { silent: false });
+    await execute("pip3 install rstfmt", { silent: false });
     const files = glob.sync(filesPattern);
     core.debug(`Files to format: ${files.join(", ")}`);
     for (const file of files) {
         const original = fs.readFileSync(file, "utf-8");
-        await execute(`rstfmt "${file}" > "${file}"`, { silent: true });
+        await execute(`rstfmt "${file}" > "${file}"`, { silent: false });
         const formatted = fs.readFileSync(file, "utf-8");
         if (original !== formatted && commit) {
             await execute(`git add "${file}"`);
         }
     }
     if (commit) {
-        await execute(`git config user.name "${githubUsername}"`, { silent: true });
-        await execute("git config user.email ''", { silent: true });
-        const { stdOut } = await execute("git status --porcelain", { silent: true });
+        await execute(`git config user.name "${githubUsername}"`, { silent: false });
+        await execute("git config user.email ''", { silent: false });
+        const { stdOut } = await execute("git status --porcelain", { silent: false });
         if (stdOut.trim() !== "") {
             await execute(`git commit --all -m "${commitMessage}"`);
-            await execute("git push", { silent: true });
+            await execute("git push", { silent: false });
         }
         else {
             core.info("Nothing to commit!");
