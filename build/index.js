@@ -78,31 +78,14 @@ const run = async () => {
     for (const file of files) {
         const original = fs.readFileSync(file, "utf-8");
         const tempFile = path.join(os.tmpdir(), path.basename(file));
-        await execute(`rstfmt "${file}" > "${file}"`, {
+        await execute(`rstfmt "${file}" > "${tempFile}"`, {
             silent: false,
             ...{ shell: "/bin/bash" },
         });
         const formatted = fs.readFileSync(tempFile, "utf-8");
-        fs.unlinkSync(tempFile);
         if (original !== formatted && commit) {
             fs.writeFileSync(file, formatted, "utf8");
             await execute(`git add "${file}"`);
-        }
-    }
-    if (commit) {
-        await execute(`git config user.name "${githubUsername}"`, {
-            silent: false,
-        });
-        await execute("git config user.email ''", { silent: false });
-        const { stdOut } = await execute("git status --porcelain", {
-            silent: false,
-        });
-        if (stdOut.trim() !== "") {
-            await execute(`git commit --all -m "${commitMessage}"`);
-            await execute("git push", { silent: false });
-        }
-        else {
-            core.info("Nothing to commit!");
         }
     }
 };
