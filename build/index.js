@@ -51,6 +51,7 @@ const execute = async (command, { silent = false } = {}) => {
     let stdErr = "";
     const options = {
         silent,
+        ignoreReturnCode: true,
         listeners: {
             stdout: (data) => (stdOut += data.toString()),
             stderr: (data) => (stdErr += data.toString()),
@@ -74,18 +75,27 @@ const main = async () => {
     if (DEBUG) {
         // If needed, write your unformatted RST content to a file here
     }
-    const formattedFiles = [];
+    let rstFiles = [];
     for (const filePattern of filePatterns) {
         const files = await findFilesWithGlob(filePattern);
-        for (const file of files) {
-            const { err } = await execute(`rstfmt ${file}`);
-            if (!err) {
-                formattedFiles.push(file);
-            }
-        }
+        rstFiles = rstFiles.concat(files);
     }
-    if (formattedFiles.length === 0) {
+    if (rstFiles.length === 0) {
         core.info("No RST files found.");
+        return;
+    }
+    const individualFiles = rstFiles.join("\n").split("\n");
+    const formatCommands = individualFiles.map((file) => `rstfmt ${file}`);
+    const formatResult = await Promise.all(formatCommands.map((command) => execute(command)));
+    const failedFiles = formatResult
+        .filter((result) => result.err)
+        .map((result) => {
+        const cmdIndex = formatResult.findIndex((r) => r === result);
+        return rstFiles[cmdIndex];
+    });
+    if (failedFiles.length > 0) {
+        core.error(`Error formatting RST files: ${failedFiles.join(", ")}`);
+        core.setFailed("Error formatting RST files.");
         return;
     }
     core.info("RST files formatted successfully.");
