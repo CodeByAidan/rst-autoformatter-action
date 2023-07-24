@@ -1,10 +1,6 @@
 import * as core from "@actions/core";
 import { ExecOptions } from "@actions/exec";
 import { exec as cpExec } from "child_process";
-import * as fs from "fs";
-import * as glob from "glob";
-import * as os from "os";
-import * as path from "path";
 
 interface ExecuteReturn {
 	err: boolean;
@@ -45,64 +41,30 @@ const execute = async (
 };
 
 const run = async () => {
-	const filesPattern: string = core.getInput("files") || "**/*.rst";
-	const commitString: string = core.getInput("commit") || "true";
-	const commit: boolean = commitString.toLowerCase() !== "false";
-	const githubUsername: string =
-		core.getInput("github-username") || "github-actions";
-	const commitMessage: string =
-		core.getInput("commit-message") || "Apply rstfmt formatting";
-
-	await execute("sudo apt-get update", { silent: false });
-	await execute("sudo apt-get install -y python3.10 python3-pip", {
-		silent: false,
-	});
-	await execute("pip3 install rstfmt", { silent: false });
-
-	const files: string[] = glob.sync(filesPattern);
-	core.debug(`Files to format: ${files.join(", ")}`);
-
-	let changesDetected = false;
-
-	for (const file of files) {
-		const original: string = fs.readFileSync(file, "utf-8");
-		const tempFile: string = path.join(os.tmpdir(), path.basename(file));
-
-		await execute(`rstfmt "${file}" > "${tempFile}"`, {
-			silent: false,
-			...{ shell: "/bin/bash" },
-		});
-
-		// Check if tempFile exists and has contents
-		if (fs.existsSync(tempFile) && fs.readFileSync(tempFile, "utf-8").trim() !== "") {
-			const formatted: string = fs.readFileSync(tempFile, "utf-8");
-
-			if (original !== formatted && commit) {
-				fs.writeFileSync(file, formatted, "utf8");
-				await execute(`git add "${file}"`);
-				changesDetected = true;
-			}
-		}
-
-		fs.unlinkSync(tempFile);
-	}
-
-	if (commit && changesDetected) {
-		await execute(`git config user.name "${githubUsername}"`, {
-			silent: false,
-		});
-		await execute("git config user.email ''", { silent: false });
-
-		const { stdOut } = await execute("git status --porcelain", {
-			silent: false,
-		});
-		if (stdOut.trim() !== "") {
-			await execute(`git commit --all -m "${commitMessage}"`);
-			await execute("git push", { silent: false });
-		} else {
-			core.info("Nothing to commit!");
-		}
-	}
+    const commands = `
+    sudo apt-get update
+    sudo apt-get install -y python3.10
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+    for file in tests/*.rst README.rst; do
+      rstfmt "$file"
+      cp "$file" "temp-$file"
+      if ! cmp -s "$file" "temp-$file"; then
+        mv "temp-$file" "$file"
+      fi
+      rm -f "temp-$file"
+    done
+    git config user.name "GitHub Actions"
+    git config user.email "<>"
+    if [ -n "$(git status -s)" ]; then
+      git add .
+      git commit -m "Apply rstfmt formatting"
+      git push
+    else
+      echo "No changes to commit. Skipping commit and push."
+    fi
+    `;
+    await execute(commands);
 };
 
 run().catch((error: Error) => core.setFailed(error.message));
