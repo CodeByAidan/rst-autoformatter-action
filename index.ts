@@ -77,15 +77,21 @@ const main = async () => {
 	const individualFiles = rstFiles.join("\n").split("\n");
 
 	const formatCommands = individualFiles.map((file) => `rstfmt ${file}`);
+	core.info(`Current working directory: ${process.cwd()}`);
+	core.info(`Formatting RST files: ${individualFiles.join(", ")}`);
+	core.info(`Format command: ${formatCommands.join(", ")}`);
 	const formatResult = await Promise.all(
 		formatCommands.map((command) => execute(command))
 	);
 
 	const failedFiles = formatResult
 		.filter((result) => result.err)
-		.map((result) => {
+		.map((result, index) => {
 			const cmdIndex = formatResult.findIndex((r) => r === result);
-			return rstFiles[cmdIndex];
+			const failedFile = individualFiles[cmdIndex];
+			core.error(`Error formatting RST file: ${failedFile}`);
+			core.error(`Error message: ${result.stdErr}`);
+			return failedFile;
 		});
 
 	if (failedFiles.length > 0) {
