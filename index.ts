@@ -1,24 +1,18 @@
 import * as core from "@actions/core";
 import { exec, ExecOptions } from "@actions/exec";
 import { writeFileSync } from "fs";
+import glob from "glob";
 
-const findFilesWithGlob = async (filePattern: string): Promise<string[]> => {
-	const files: string[] = [];
-	await exec(
-		`sh -c "GLOBIGNORE=**; for file in ${filePattern}; do echo $file; done"`,
-		[],
-		{
-			listeners: {
-				stdout: (data: Buffer) => {
-					const file = data.toString().trim();
-					if (file) {
-						files.push(file);
-					}
-				},
-			},
-		}
-	);
-	return files;
+const findFilesWithGlob = (filePattern: string): Promise<string[]> => {
+	return new Promise<string[]>((resolve, reject) => {
+		glob(filePattern, (error, files) => {
+			if (error) {
+				reject(error);
+			} else {
+				resolve(files);
+			}
+		});
+	});
 };
 
 const execute = async (
