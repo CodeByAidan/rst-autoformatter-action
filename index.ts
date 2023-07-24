@@ -1,11 +1,15 @@
 import * as core from "@actions/core";
 import { exec, ExecOptions } from "@actions/exec";
-import { writeFileSync } from "fs";
 import glob from "glob";
 
+/**
+ * Find files using a glob pattern.
+ * @param filePattern The glob pattern to search for files.
+ * @returns A promise that resolves with an array of file paths matching the pattern.
+ */
 const findFilesWithGlob = (filePattern: string): Promise<string[]> => {
 	return new Promise<string[]>((resolve, reject) => {
-		glob(filePattern, (error, files) => {
+		glob(filePattern, (error: Error | null, files: string[]) => {
 			if (error) {
 				reject(error);
 			} else {
@@ -15,12 +19,18 @@ const findFilesWithGlob = (filePattern: string): Promise<string[]> => {
 	});
 };
 
+/**
+ * Execute a command asynchronously.
+ * @param command The command to execute.
+ * @param options Optional configuration options for the execution.
+ * @returns A promise that resolves with the execution result.
+ */
 const execute = async (
 	command: string,
-	{ silent = false } = {}
+	{ silent = false }: { silent?: boolean } = {}
 ): Promise<{ err: boolean; stdOut: string; stdErr: string }> => {
-	let stdOut = "";
-	let stdErr = "";
+	let stdOut: string = "";
+	let stdErr: string = "";
 	const options: ExecOptions = {
 		silent,
 		ignoreReturnCode: true,
@@ -30,26 +40,32 @@ const execute = async (
 		},
 	};
 
-	const exitCode = await exec(command, undefined, options);
+	const exitCode: number = await exec(command, undefined, options);
 
 	return { err: exitCode !== 0, stdErr, stdOut };
 };
 
-const push = async () => execute("git push");
+/**
+ * Execute a `git push`.
+ */
+const push = async (): Promise<void> => {await execute("git push")};
 
-const main = async () => {
-	const DEBUG = core.isDebug();
-	const args = core.getInput("rstfmt-args") || "";
-	const filePatterns = core.getMultilineInput("files") || ["**/*.rst"];
+/**
+ * Main function that formats RST files based on the provided configuration.
+ */
+const main = async (): Promise<void> => {
+	const DEBUG: boolean = core.isDebug();
+	const args: string = core.getInput("rstfmt-args") || "";
+	const filePatterns: string[] = core.getMultilineInput("files") || ["**/*.rst"];
 
-	const commitString = core.getInput("commit") || "true";
-	const commit = commitString.toLowerCase() !== "false";
+	const commitString: string = core.getInput("commit") || "true";
+	const commit: boolean = commitString.toLowerCase() !== "false";
 
-	const githubUsername = core.getInput("github-username") || "github-actions";
+	const githubUsername: string = core.getInput("github-username") || "github-actions";
 
-	const commitMessage = core.getInput("commit-message") || "Format RST files";
+	const commitMessage: string = core.getInput("commit-message") || "Format RST files";
 
-	await core.group("Installing rstfmt", async () => {
+	await core.group("Installing rstfmt", async (): Promise<void> => {
 		await execute("pip install rstfmt", { silent: true });
 	});
 
@@ -59,7 +75,7 @@ const main = async () => {
 
 	let rstFiles: string[] = [];
 	for (const filePattern of filePatterns) {
-		const files = await findFilesWithGlob(filePattern);
+		const files: string[] = await findFilesWithGlob(filePattern);
 		rstFiles = rstFiles.concat(files);
 	}
 
@@ -68,21 +84,21 @@ const main = async () => {
 		return;
 	}
 
-	const individualFiles = rstFiles.join("\n").split("\n");
+	const individualFiles: string[] = rstFiles.join("\n").split("\n");
 
-	const formatCommands = individualFiles.map((file) => `rstfmt ${file}`);
+	const formatCommands: string[] = individualFiles.map((file) => `rstfmt ${file}`);
 	core.info(`Current working directory: ${process.cwd()}`);
 	core.info(`Formatting RST files: ${individualFiles.join(", ")}`);
 	core.info(`Format command: ${formatCommands.join(", ")}`);
-	const formatResult = await Promise.all(
+	const formatResult: { err: boolean; stdOut: string; stdErr: string }[] = await Promise.all(
 		formatCommands.map((command) => execute(command))
 	);
 
-	const failedFiles = formatResult
+	const failedFiles: string[] = formatResult
 		.filter((result) => result.err)
 		.map((result, index) => {
-			const cmdIndex = formatResult.findIndex((r) => r === result);
-			const failedFile = individualFiles[cmdIndex];
+			const cmdIndex: number = formatResult.findIndex((r) => r === result);
+			const failedFile: string = individualFiles[cmdIndex];
 			core.error(`Error formatting RST file: ${failedFile}`);
 			core.error(`Error message: ${result.stdErr}`);
 			return failedFile;
@@ -97,12 +113,12 @@ const main = async () => {
 	core.info("RST files formatted successfully.");
 
 	if (commit) {
-		await core.group("Committing changes", async () => {
+		await core.group("Committing changes", async (): Promise<void> => {
 			await execute(`git config user.name "${githubUsername}"`, {
 				silent: true,
 			});
 			await execute('git config user.email ""', { silent: true });
-			const { err: diffErr } = await execute("git diff-index --quiet HEAD", {
+			const { err: diffErr }: { err: boolean } = await execute("git diff-index --quiet HEAD", {
 				silent: true,
 			});
 			if (!diffErr) {
