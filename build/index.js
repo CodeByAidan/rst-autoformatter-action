@@ -32,14 +32,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(186));
 const exec_1 = __nccwpck_require__(514);
-// Enable globstar for recursive globbing
-const enableGlobstar = async () => {
-    await (0, exec_1.exec)('shopt -s globstar', [], {
-        silent: true,
-        ignoreReturnCode: true,
-    });
-};
-// Function to find files based on glob patterns
 const findFilesWithGlob = async (filePattern) => {
     const files = [];
     await (0, exec_1.exec)(`sh -c "GLOBIGNORE=**; for file in ${filePattern}; do echo $file; done"`, [], {
@@ -83,8 +75,6 @@ const main = async () => {
     if (DEBUG) {
         // If needed, write your unformatted RST content to a file here
     }
-    // Enable globstar for recursive globbing
-    await enableGlobstar();
     let rstFiles = [];
     for (const filePattern of filePatterns) {
         const files = await findFilesWithGlob(filePattern);
