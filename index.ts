@@ -1,11 +1,10 @@
 import * as core from "@actions/core";
 import { ExecOptions } from "@actions/exec";
-import { exec as cpExec } from 'child_process';
+import { exec as cpExec } from "child_process";
 import * as fs from "fs";
 import * as glob from "glob";
 import * as os from "os";
 import * as path from "path";
-
 
 interface ExecuteReturn {
 	err: boolean;
@@ -13,11 +12,14 @@ interface ExecuteReturn {
 	stdErr: string;
 }
 
-const execute = async (command: string, options: ExecOptions & { listeners?: any, shell?: string } = {}): Promise<ExecuteReturn> => {
+const execute = async (
+	command: string,
+	options: ExecOptions & { listeners?: any; shell?: string } = {}
+): Promise<ExecuteReturn> => {
 	let stdOut = "";
 	let stdErr = "";
 
-	const execOptions: ExecOptions & { listeners?: any, shell?: string } = {
+	const execOptions: ExecOptions & { listeners?: any; shell?: string } = {
 		...options,
 		listeners: {
 			stdout: (data: Buffer) => {
@@ -28,7 +30,7 @@ const execute = async (command: string, options: ExecOptions & { listeners?: any
 			},
 			...options.listeners,
 		},
-		shell: options.shell || '/bin/bash',
+		shell: options.shell || "/bin/bash",
 	};
 
 	return new Promise((resolve, reject) => {
@@ -46,11 +48,15 @@ const run = async () => {
 	const filesPattern: string = core.getInput("files") || "**/*.rst";
 	const commitString: string = core.getInput("commit") || "true";
 	const commit: boolean = commitString.toLowerCase() !== "false";
-	const githubUsername: string = core.getInput("github-username") || "github-actions";
-	const commitMessage: string = core.getInput("commit-message") || "Apply rstfmt formatting";
+	const githubUsername: string =
+		core.getInput("github-username") || "github-actions";
+	const commitMessage: string =
+		core.getInput("commit-message") || "Apply rstfmt formatting";
 
 	await execute("sudo apt-get update", { silent: false });
-	await execute("sudo apt-get install -y python3.10 python3-pip", { silent: false });
+	await execute("sudo apt-get install -y python3.10 python3-pip", {
+		silent: false,
+	});
 	await execute("pip3 install rstfmt", { silent: false });
 
 	const files: string[] = glob.sync(filesPattern);
@@ -60,21 +66,28 @@ const run = async () => {
 		const original: string = fs.readFileSync(file, "utf-8");
 		const tempFile: string = path.join(os.tmpdir(), path.basename(file));
 
-		await execute(`rstfmt "${file}" > "${tempFile}"`);
+		await execute(`rstfmt "${file}" > "${file}"`, {
+			silent: false,
+			...{ shell: "/bin/bash" },
+		});
 		const formatted: string = fs.readFileSync(tempFile, "utf-8");
-		fs.unlinkSync(tempFile); // remove temporary file
+		fs.unlinkSync(tempFile);
 
 		if (original !== formatted && commit) {
-			fs.writeFileSync(file, formatted, 'utf8');
+			fs.writeFileSync(file, formatted, "utf8");
 			await execute(`git add "${file}"`);
 		}
 	}
 
 	if (commit) {
-		await execute(`git config user.name "${githubUsername}"`, { silent: false });
+		await execute(`git config user.name "${githubUsername}"`, {
+			silent: false,
+		});
 		await execute("git config user.email ''", { silent: false });
 
-		const { stdOut } = await execute("git status --porcelain", { silent: false });
+		const { stdOut } = await execute("git status --porcelain", {
+			silent: false,
+		});
 		if (stdOut.trim() !== "") {
 			await execute(`git commit --all -m "${commitMessage}"`);
 			await execute("git push", { silent: false });
