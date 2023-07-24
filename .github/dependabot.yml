@@ -1,0 +1,21 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+
+version: 2
+updates:
+  - package-ecosystem: "github-actions"   # Specify the package manager (using generic github-actions)
+    directory: "/"                       # Location of package manifests (if applicable)
+    schedule:
+      interval: "weekly"                 # Set the update check interval to weekly
+      time: "08:00"                      # Check for updates at 08:00 (adjust as needed)
+      timezone: "UTC"                    # Timezone for the check (adjust as needed)
+    allow:
+      - dependency-type: "all"           # Allow all types of dependencies to be updated
+    assignees:
+      - livxy                            # Set desired assignees for pull requests (add more if needed)
+    commit-message:
+      prefix: "Dependabot"               # Set a custom prefix for commit messages (optional)
+    target-branch: "main"                # Create pull requests against the 'main' branch
