@@ -42,7 +42,7 @@ const enableGlobstar = async () => {
 // Function to find files based on glob patterns
 const findFilesWithGlob = async (filePattern) => {
     const files = [];
-    await (0, exec_1.exec)(`sh -c "for file in ${filePattern}; do echo $file; done"`, [], {
+    await (0, exec_1.exec)(`sh -c "GLOBIGNORE=**; for file in ${filePattern}; do echo $file; done"`, [], {
         listeners: {
             stdout: (data) => {
                 const file = data.toString().trim();
