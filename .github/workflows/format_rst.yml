@@ -17,9 +17,11 @@ jobs:
       - name: Run RST Autoformatter
         uses: livxy/rst-autoformatter-action@main
         with:
-          # files: '**/*.rst' # works!
-          # files: 'tests/lines.rst' # works!
-          files: '{tests/admonitions,tests/escaped-text}.rst'
+          # files: '**/*.rst' # works! - globbing is supported
+          files: 'tests/*.rst'
+          # files: 'tests/lines.rst' # works! - single file
+          # files: '{tests/admonitions,tests/escaped-text}.rst' # works! - brace expansion is supported (Unix trick)
+          # For more patterns, see https://mywiki.wooledge.org/glob#Globs
           commit: 'true'
           github-username: 'github-actions'
           commit-message: 'Automated RST formatting'
