@@ -84,7 +84,7 @@ const main = async () => {
         core.info('No RST files found.');
         return;
     }
-    const formatCommands = rstFiles.map((file) => `rstfmt ${file}`);
+    const formatCommands = rstFiles.map((file) => `rstfmt "${file}"`);
     const formatResult = await Promise.all(formatCommands.map((command) => execute(command)));
     const failedFiles = formatResult
         .filter((result) => result.err)
