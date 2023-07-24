@@ -4,17 +4,12 @@
 
 A GitHub Action that automatically formats reStructuredText (rst) files
 in your project using ``rstfmt`` every time you make a push or a pull
-request. This is done with a bit of complicated shell madness, and
-Python.
+request. This is done through a little bit of magic with glob patterns, and Unix
+commands!
 
 *******
  Usage
 *******
-
-**Check if "Read and write permissions" are enabled in Settings ->
-Actions -> General -> Workflow permissions:**
-
-.. image:: media/chrome_pAkjeMG4hV.png
 
 To use this action, you need to create a workflow (``.yml`` or ``.yaml``
 file) in the ``.github/workflows`` directory of your repository. and add
