@@ -32,6 +32,28 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(186));
 const exec_1 = __nccwpck_require__(514);
+// Enable globstar for recursive globbing
+const enableGlobstar = async () => {
+    await (0, exec_1.exec)('shopt -s globstar', [], {
+        silent: true,
+        ignoreReturnCode: true,
+    });
+};
+// Function to find files based on glob patterns
+const findFilesWithGlob = async (filePattern) => {
+    const files = [];
+    await (0, exec_1.exec)(`sh -c "for file in ${filePattern}; do echo $file; done"`, [], {
+        listeners: {
+            stdout: (data) => {
+                const file = data.toString().trim();
+                if (file) {
+                    files.push(file);
+                }
+            },
+        },
+    });
+    return files;
+};
 const execute = async (command, { silent = false } = {}) => {
     let stdOut = '';
     let stdErr = '';
@@ -50,7 +72,7 @@ const push = async () => execute('git push');
 const main = async () => {
     const DEBUG = core.isDebug();
     const args = core.getInput('rstfmt-args') || '';
-    const files = core.getInput('files') || '**/*.rst';
+    const filePatterns = core.getMultilineInput('files') || ['**/*.rst'];
     const commitString = core.getInput('commit') || 'true';
     const commit = commitString.toLowerCase() !== 'false';
     const githubUsername = core.getInput('github-username') || 'github-actions';
@@ -61,13 +83,13 @@ const main = async () => {
     if (DEBUG) {
         // If needed, write your unformatted RST content to a file here
     }
-    const findCommand = `find . -type f -name "${files}"`;
-    const findResult = await execute(findCommand, { silent: true });
-    if (findResult.err) {
-        core.setFailed(`Error finding RST files using pattern "${files}"`);
-        return;
+    // Enable globstar for recursive globbing
+    await enableGlobstar();
+    let rstFiles = [];
+    for (const filePattern of filePatterns) {
+        const files = await findFilesWithGlob(filePattern);
+        rstFiles = rstFiles.concat(files);
     }
-    const rstFiles = findResult.stdOut.split('\n').filter(Boolean);
     if (rstFiles.length === 0) {
         core.info('No RST files found.');
         return;
@@ -89,7 +111,7 @@ const main = async () => {
     if (commit) {
         await core.group('Committing changes', async () => {
             await execute(`git config user.name "${githubUsername}"`, { silent: true });
-            await execute("git config user.email ''", { silent: true });
+            await execute('git config user.email ""', { silent: true });
             const { err: diffErr } = await execute('git diff-index --quiet HEAD', {
                 silent: true,
             });

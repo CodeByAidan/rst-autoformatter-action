@@ -17,9 +17,8 @@ jobs:
       - name: Run RST Autoformatter
         uses: livxy/rst-autoformatter-action@main
         with:
-          rstfmt-args: ''
+          files: '**/*.rst'
           commit: 'true'
           github-username: 'github-actions'
           commit-message: 'Automated RST formatting'
-          files: '**/*.rst'
 

@@ -2,6 +2,30 @@ import * as core from '@actions/core';
 import { exec, ExecOptions } from '@actions/exec';
 import { writeFileSync } from 'fs';
 
+// Enable globstar for recursive globbing
+const enableGlobstar = async (): Promise<void> => {
+	await exec('shopt -s globstar', [], {
+		silent: true,
+		ignoreReturnCode: true,
+	});
+};
+
+// Function to find files based on glob patterns
+const findFilesWithGlob = async (filePattern: string): Promise<string[]> => {
+	const files: string[] = [];
+	await exec(`sh -c "for file in ${filePattern}; do echo $file; done"`, [], {
+		listeners: {
+			stdout: (data: Buffer) => {
+				const file = data.toString().trim();
+				if (file) {
+					files.push(file);
+				}
+			},
+		},
+	});
+	return files;
+};
+
 const execute = async (
 	command: string,
 	{ silent = false } = {}
@@ -12,8 +36,8 @@ const execute = async (
 		silent,
 		ignoreReturnCode: true,
 		listeners: {
-			stdout: (data: { toString: () => string }) => (stdOut += data.toString()),
-			stderr: (data: { toString: () => string }) => (stdErr += data.toString()),
+			stdout: (data: Buffer) => (stdOut += data.toString()),
+			stderr: (data: Buffer) => (stdErr += data.toString()),
 		},
 	};
 
@@ -27,7 +51,7 @@ const push = async () => execute('git push');
 const main = async () => {
 	const DEBUG = core.isDebug();
 	const args = core.getInput('rstfmt-args') || '';
-	const files = core.getInput('files') || '**/*.rst';
+	const filePatterns = core.getMultilineInput('files') || ['**/*.rst'];
 
 	const commitString = core.getInput('commit') || 'true';
 	const commit = commitString.toLowerCase() !== 'false';
@@ -44,15 +68,14 @@ const main = async () => {
 		// If needed, write your unformatted RST content to a file here
 	}
 
-	const findCommand = `find . -type f -name "${files}"`;
-	const findResult = await execute(findCommand, { silent: true });
+	// Enable globstar for recursive globbing
+	await enableGlobstar();
 
-	if (findResult.err) {
-		core.setFailed(`Error finding RST files using pattern "${files}"`);
-		return;
+	let rstFiles: string[] = [];
+	for (const filePattern of filePatterns) {
+		const files = await findFilesWithGlob(filePattern);
+		rstFiles = rstFiles.concat(files);
 	}
-
-	const rstFiles = findResult.stdOut.split('\n').filter(Boolean);
 
 	if (rstFiles.length === 0) {
 		core.info('No RST files found.');
@@ -60,9 +83,7 @@ const main = async () => {
 	}
 
 	const formatCommands = rstFiles.map((file) => `rstfmt ${file}`);
-	const formatResult = await Promise.all(
-		formatCommands.map((command) => execute(command))
-	);
+	const formatResult = await Promise.all(formatCommands.map((command) => execute(command)));
 
 	const failedFiles = formatResult
 		.filter((result) => result.err)
@@ -82,7 +103,7 @@ const main = async () => {
 	if (commit) {
 		await core.group('Committing changes', async () => {
 			await execute(`git config user.name "${githubUsername}"`, { silent: true });
-			await execute("git config user.email ''", { silent: true });
+			await execute('git config user.email ""', { silent: true });
 			const { err: diffErr } = await execute('git diff-index --quiet HEAD', {
 				silent: true,
 			});
