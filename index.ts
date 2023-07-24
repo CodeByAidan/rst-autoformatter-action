@@ -62,6 +62,8 @@ const run = async () => {
 	const files: string[] = glob.sync(filesPattern);
 	core.debug(`Files to format: ${files.join(", ")}`);
 
+	let changesDetected = false;
+
 	for (const file of files) {
 		const original: string = fs.readFileSync(file, "utf-8");
 		const tempFile: string = path.join(os.tmpdir(), path.basename(file));
@@ -70,11 +72,35 @@ const run = async () => {
 			silent: false,
 			...{ shell: "/bin/bash" },
 		});
-		const formatted: string = fs.readFileSync(tempFile, "utf-8");
 
-		if (original !== formatted && commit) {
-			fs.writeFileSync(file, formatted, "utf8");
-			await execute(`git add "${file}"`);
+		// Check if tempFile exists and has contents
+		if (fs.existsSync(tempFile) && fs.readFileSync(tempFile, "utf-8").trim() !== "") {
+			const formatted: string = fs.readFileSync(tempFile, "utf-8");
+
+			if (original !== formatted && commit) {
+				fs.writeFileSync(file, formatted, "utf8");
+				await execute(`git add "${file}"`);
+				changesDetected = true;
+			}
+		}
+
+		fs.unlinkSync(tempFile);
+	}
+
+	if (commit && changesDetected) {
+		await execute(`git config user.name "${githubUsername}"`, {
+			silent: false,
+		});
+		await execute("git config user.email ''", { silent: false });
+
+		const { stdOut } = await execute("git status --porcelain", {
+			silent: false,
+		});
+		if (stdOut.trim() !== "") {
+			await execute(`git commit --all -m "${commitMessage}"`);
+			await execute("git push", { silent: false });
+		} else {
+			core.info("Nothing to commit!");
 		}
 	}
 };
