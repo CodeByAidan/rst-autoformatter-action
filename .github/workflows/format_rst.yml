@@ -19,7 +19,7 @@ jobs:
         with:
           # files: '**/*.rst' # works!
           # files: 'tests/lines.rst' # works!
-          files: 'tests/lines.rst, tests/lines2.rst'
+          files: 'tests/admonitions.rst, tests/escaped-text.rst'
           commit: 'true'
           github-username: 'github-actions'
           commit-message: 'Automated RST formatting'
