@@ -47,11 +47,10 @@ const findFilesWithGlob = async (filePattern) => {
     return files;
 };
 const execute = async (command, { silent = false } = {}) => {
-    let stdOut = '';
-    let stdErr = '';
+    let stdOut = "";
+    let stdErr = "";
     const options = {
         silent,
-        ignoreReturnCode: true,
         listeners: {
             stdout: (data) => (stdOut += data.toString()),
             stderr: (data) => (stdErr += data.toString()),
@@ -60,53 +59,47 @@ const execute = async (command, { silent = false } = {}) => {
     const exitCode = await (0, exec_1.exec)(command, undefined, options);
     return { err: exitCode !== 0, stdErr, stdOut };
 };
-const push = async () => execute('git push');
+const push = async () => execute("git push");
 const main = async () => {
     const DEBUG = core.isDebug();
-    const args = core.getInput('rstfmt-args') || '';
-    const filePatterns = core.getMultilineInput('files') || ['**/*.rst'];
-    const commitString = core.getInput('commit') || 'true';
-    const commit = commitString.toLowerCase() !== 'false';
-    const githubUsername = core.getInput('github-username') || 'github-actions';
-    const commitMessage = core.getInput('commit-message') || 'Format RST files';
-    await core.group('Installing rstfmt', async () => {
-        await execute('pip install rstfmt', { silent: true });
+    const args = core.getInput("rstfmt-args") || "";
+    const filePatterns = core.getMultilineInput("files") || ["**/*.rst"];
+    const commitString = core.getInput("commit") || "true";
+    const commit = commitString.toLowerCase() !== "false";
+    const githubUsername = core.getInput("github-username") || "github-actions";
+    const commitMessage = core.getInput("commit-message") || "Format RST files";
+    await core.group("Installing rstfmt", async () => {
+        await execute("pip install rstfmt", { silent: true });
     });
     if (DEBUG) {
         // If needed, write your unformatted RST content to a file here
     }
-    let rstFiles = [];
+    const formattedFiles = [];
     for (const filePattern of filePatterns) {
         const files = await findFilesWithGlob(filePattern);
-        rstFiles = rstFiles.concat(files);
+        for (const file of files) {
+            const { err } = await execute(`rstfmt ${file}`);
+            if (!err) {
+                formattedFiles.push(file);
+            }
+        }
     }
-    if (rstFiles.length === 0) {
-        core.info('No RST files found.');
+    if (formattedFiles.length === 0) {
+        core.info("No RST files found.");
         return;
     }
-    const formatCommands = rstFiles.map((file) => `rstfmt "${file}"`);
-    const formatResult = await Promise.all(formatCommands.map((command) => execute(command)));
-    const failedFiles = formatResult
-        .filter((result) => result.err)
-        .map((result) => {
-        const cmdIndex = formatResult.findIndex((r) => r === result);
-        return rstFiles[cmdIndex];
-    });
-    if (failedFiles.length > 0) {
-        core.error(`Error formatting RST files: ${failedFiles.join(', ')}`);
-        core.setFailed('Error formatting RST files.');
-        return;
-    }
-    core.info('RST files formatted successfully.');
+    core.info("RST files formatted successfully.");
     if (commit) {
-        await core.group('Committing changes', async () => {
-            await execute(`git config user.name "${githubUsername}"`, { silent: true });
+        await core.group("Committing changes", async () => {
+            await execute(`git config user.name "${githubUsername}"`, {
+                silent: true,
+            });
             await execute('git config user.email ""', { silent: true });
-            const { err: diffErr } = await execute('git diff-index --quiet HEAD', {
+            const { err: diffErr } = await execute("git diff-index --quiet HEAD", {
                 silent: true,
             });
             if (!diffErr) {
-                core.info('Nothing to commit!');
+                core.info("Nothing to commit!");
             }
             else {
                 await execute(`git commit --all -m "${commitMessage}"`);
@@ -123,7 +116,7 @@ catch (err) {
         core.setFailed(err.message);
     }
     else {
-        core.setFailed('An error occurred.');
+        core.setFailed("An error occurred.");
     }
 }
 
