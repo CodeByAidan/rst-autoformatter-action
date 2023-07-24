@@ -4,8 +4,8 @@
 
 A GitHub Action that automatically formats reStructuredText (rst) files
 in your project using ``rstfmt`` every time you make a push or a pull
-request. This is done through a little bit of magic with glob patterns, and Unix
-commands!
+request. This is done through a little bit of magic with glob patterns,
+and Unix commands!
 
 *******
  Usage
