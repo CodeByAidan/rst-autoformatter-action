@@ -1,32 +1,32 @@
-:Emphasis:`a`
+*a*
 
-:Literal:`a`
+``a``
 
-:code:`a`
+``a``
 
-:math:`a b\  c..:x`
+:math:`a b\ c..:x`
 
-:pep-reference:`2`
+:PEP:`2`
 
-:rfc-reference:`2`
+:RFC:`2`
 
-:pep:`2`
+:PEP:`2`
 
-:rfc:`2`
+:RFC:`2`
 
-:strong:`a`
+**a**
 
-:subscript:`a\ b`
+:sub:`a\ b`
 
-:superscript:`a`
+:sup:`a`
 
-:title-reference:`a`
+`a`
 
 ``a``
 
 ``a \ b``
 
-:literal:`a\` \ b`
+``a` b``
 
 :math:`a\`\ b`
 
