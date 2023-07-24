@@ -1,39 +1,44 @@
-.. admonition:: title
-                a
-              b
+.. admonition:: title a b
 
    a
-    b
+      b
 
 .. attention::
-  a
 
-  - a
+   a
 
-    #.   x
+   -  a
+
+      #. x
 
 .. caution::
- c
+
+   c
 
 .. danger::
-        d
+
+   d
 
 .. error::
-    e
+
+   e
 
 .. hint::
-      h
+
+   h
 
 .. important::
-  i
+
+   i
 
 .. note::
-         n
+
+   n
 
 .. tip::
-    t
+
+   t
 
 .. warning::
-     w
-     x
-     y
+
+   w x y
