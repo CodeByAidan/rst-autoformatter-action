@@ -69,10 +69,6 @@ const main = async (): Promise<void> => {
 		await execute("pip install rstfmt", { silent: true });
 	});
 
-	if (DEBUG) {
-		// If needed, write your unformatted RST content to a file here
-	}
-
 	let rstFiles: string[] = [];
 	for (const filePattern of filePatterns) {
 		const files: string[] = await findFilesWithGlob(filePattern);
@@ -87,9 +83,9 @@ const main = async (): Promise<void> => {
 	const individualFiles: string[] = rstFiles.join("\n").split("\n");
 
 	const formatCommands: string[] = individualFiles.map((file) => `rstfmt ${file}`);
-	core.info(`Current working directory: ${process.cwd()}`);
-	core.info(`Formatting RST files: ${individualFiles.join(", ")}`);
-	core.info(`Format command: ${formatCommands.join(", ")}`);
+	core.debug(`Current working directory: ${process.cwd()}`);
+	core.debug(`Formatting RST files: ${individualFiles.join(", ")}`);
+	core.debug(`Format command: ${formatCommands.join(", ")}`);
 	const formatResult: { err: boolean; stdOut: string; stdErr: string }[] = await Promise.all(
 		formatCommands.map((command) => execute(command))
 	);
