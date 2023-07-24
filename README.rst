@@ -22,7 +22,7 @@ the following code to it:
    on: [push, pull_request]
 
    jobs:
-     test:
+     formatting:
        runs-on: ubuntu-latest
        steps:
          - name: Check out code
