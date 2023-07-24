@@ -4,8 +4,12 @@ branding:
   icon: file-text
   color: white
 inputs:
+  rstfmt-args:
+    description: 'Additional arguments to pass to rstfmt.'
+    required: false
+    default: ''
   files:
-    description: 'Pattern to match the files to be formatted.'
+    description: 'Pattern to match the RST files to be formatted.'
     required: false
     default: '**/*.rst'
   commit:
@@ -13,13 +17,13 @@ inputs:
     required: false
     default: 'true'
   github-username:
-    description: 'Username for the github action to commit with.'
+    description: 'Username for the GitHub action to commit with.'
     required: false
     default: 'github-actions'
   commit-message:
-    description: 'Message for formatter commit.'
+    description: 'Message for the formatter commit.'
     required: false
-    default: 'Format Rst'
+    default: 'Format RST files'
 runs:
   using: node16
   main: 'build/index.js'
