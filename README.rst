@@ -11,6 +11,11 @@ and Unix commands!
  Usage
 *******
 
+**Check if "Read and write permissions" are enabled in Settings ->
+Actions -> General -> Workflow permissions:**
+
+.. image:: https://raw.githubusercontent.com/livxy/rst-autoformatter-action/27b2b96a1b1484d4f12b15f2f6d924aba85ade2c/media/chrome_pAkjeMG4hV.png
+
 To use this action, you need to create a workflow (``.yml`` or ``.yaml``
 file) in the ``.github/workflows`` directory of your repository. and add
 the following code to it:
