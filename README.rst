@@ -42,7 +42,7 @@ the following code to it:
            uses: CodeByAidan/rst-autoformatter-action@main
            with:
              # files: '**/*.rst' # works! - globbing is supported
-             # files: 'tests/*.rst' # works! - just another glob patterns
+             # files: 'tests/*.rst' # works! - just another glob pattern
              # files: 'tests/lines.rst' # works! - single file
              # files: '{tests/admonitions,tests/escaped-text}.rst' # works! - brace expansion is supported (Unix trick)
              # For more patterns, see https://mywiki.wooledge.org/glob#Globs
