@@ -9,7 +9,7 @@
   },
   "keywords": [],
   "author": "CodeByAidan",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/glob": "^8.1.0",
     "@types/node": "^20.0.0",
