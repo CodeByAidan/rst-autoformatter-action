@@ -8,7 +8,7 @@
     "build": "npx tsc && ncc build dist/index.js --license LICENSE -o build && rimraf ./dist"
   },
   "keywords": [],
-  "author": "",
+  "author": "CodeByAidan",
   "license": "ISC",
   "devDependencies": {
     "@types/glob": "^8.1.0",
