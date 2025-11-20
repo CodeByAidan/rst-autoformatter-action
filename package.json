@@ -12,7 +12,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/glob": "^9.0.0",
-    "@types/node": "^22.0.0",
+    "@types/node": "^24.0.0",
     "@types/prettier": "^3.0.0",
     "@vercel/ncc": "^0.38.0",
     "nodemon": "^3.0.0",
